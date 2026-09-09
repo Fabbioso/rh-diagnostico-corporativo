@@ -1,0 +1,7 @@
+streamlit
+pandas
+plotly
+geopy
+fpdf
+kerykeion
+pytz
