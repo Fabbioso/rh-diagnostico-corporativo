@@ -10,40 +10,23 @@ import pytz
 import streamlit as st
 
 try:
-  from kerykeion import AstrologicalSubject
-
-  KERYKEION_DISPONIVEL = True
+    from kerykeion import AstrologicalSubject
+    KERYKEION_DISPONIVEL = True
 except ImportError:
-  KERYKEION_DISPONIVEL = False
+    KERYKEION_DISPONIVEL = False
 
 st.set_page_config(
     page_title="Sistema de Diagnóstico Corporativo - RH", layout="wide"
 )
 
 TRADUCAO_SIGNOS = {
-    "Ari": "Áries",
-    "Aries": "Áries",
-    "Tau": "Touro",
-    "Taurus": "Touro",
-    "Gem": "Gêmeos",
-    "Gemini": "Gêmeos",
-    "Can": "Câncer",
-    "Cancer": "Câncer",
-    "Leo": "Leão",
-    "Vir": "Virgem",
-    "Virgo": "Virgem",
-    "Lib": "Libra",
-    "Libra": "Libra",
-    "Sco": "Escorpião",
-    "Scorpio": "Escorpião",
-    "Sag": "Sagitário",
-    "Sagittarius": "Sagitário",
-    "Cap": "Capricórnio",
-    "Capricorn": "Capricórnio",
-    "Aqu": "Aquário",
-    "Aquarius": "Aquário",
-    "Pis": "Peixes",
-    "Pisces": "Peixes",
+    "Ari": "Áries", "Aries": "Áries", "Tau": "Touro", "Taurus": "Touro",
+    "Gem": "Gêmeos", "Gemini": "Gêmeos", "Can": "Câncer", "Cancer": "Câncer",
+    "Leo": "Leão", "Vir": "Virgem", "Virgo": "Virgem", "Lib": "Libra",
+    "Libra": "Libra", "Sco": "Escorpião", "Scorpio": "Escorpião",
+    "Sag": "Sagitário", "Sagittarius": "Sagitário", "Cap": "Capricórnio",
+    "Capricorn": "Capricórnio", "Aqu": "Aquário", "Aquarius": "Aquário",
+    "Pis": "Peixes", "Pisces": "Peixes",
 }
 
 ATIVADORES_NOTA_5 = {
@@ -58,25 +41,16 @@ ATIVADORES_NOTA_5 = {
 }
 
 FALSOS_POSITIVOS = {
-    1: ["O Pendurado"],
-    2: ["O Eremita"],
-    3: ["O Louco"],
-    4: ["O Sol"],
-    5: ["A Sacerdotisa", "A Papisa"],
-    6: ["Os Enamorados", "Os Amantes"],
-    7: ["A Temperança"],
-    8: ["O Carro"],
+    1: ["O Pendurado"], 2: ["O Eremita"], 3: ["O Louco"], 4: ["O Sol"],
+    5: ["A Sacerdotisa", "A Papisa"], 6: ["Os Enamorados", "Os Amantes"],
+    7: ["A Temperança"], 8: ["O Carro"],
 }
 
 ALERTAS_IMATURIDADE = {
     1: ["Pajem de Paus", "Pajem de Ouros", "Pajem de Espadas", "Pajem de Copas"],
-    2: ["Cavaleiro de Espadas"],
-    3: ["Cavaleiro de Copas"],
-    4: ["Pajem de Ouros"],
-    5: ["Pajem de Espadas"],
-    6: ["Cavaleiro de Paus"],
-    7: ["Cavaleiro de Ouros"],
-    8: ["Pajem de Copas"],
+    2: ["Cavaleiro de Espadas"], 3: ["Cavaleiro de Copas"],
+    4: ["Pajem de Ouros"], 5: ["Pajem de Espadas"],
+    6: ["Cavaleiro de Paus"], 7: ["Cavaleiro de Ouros"], 8: ["Pajem de Copas"],
 }
 
 OBS_MAP = {
@@ -92,33 +66,33 @@ OBS_MAP = {
 
 
 def calcular_nota_metodologica(casa_num, c_cent, c_neg, c_pos):
-  nota_base = 3
-  cent_limpo = str(c_cent).strip().lower() if c_cent else ""
-  neg_limpo = str(c_neg).strip().lower() if c_neg else ""
-  pos_limpo = str(c_pos).strip().lower() if c_pos else ""
+    nota_base = 3
+    cent_limpo = str(c_cent).strip().lower() if c_cent else ""
+    neg_limpo = str(c_neg).strip().lower() if c_neg else ""
+    pos_limpo = str(c_pos).strip().lower() if c_pos else ""
 
-  if any(atrib.lower() in cent_limpo for atrib in ATIVADORES_NOTA_5.get(casa_num, [])):
-    nota_base = 5
-  elif any(fp.lower() in cent_limpo for fp in FALSOS_POSITIVOS.get(casa_num, [])):
-    nota_base = 2
-  elif any(imato.lower() in cent_limpo for imato in ALERTAS_IMATURIDADE.get(casa_num, [])):
-    nota_base = 1
+    if any(atrib.lower() in cent_limpo for atrib in ATIVADORES_NOTA_5.get(casa_num, [])):
+        nota_base = 5
+    elif any(fp.lower() in cent_limpo for fp in FALSOS_POSITIVOS.get(casa_num, [])):
+        nota_base = 2
+    elif any(imato.lower() in cent_limpo for imato in ALERTAS_IMATURIDADE.get(casa_num, [])):
+        nota_base = 1
 
-  if casa_num == 1 and any(k in pos_limpo for k in ["ouros", "espadas", "mago"]):
-    if nota_base < 5:
-      nota_base += 1
+    if casa_num == 1 and any(k in pos_limpo for k in ["ouros", "espadas", "mago"]):
+        if nota_base < 5:
+            nota_base += 1
 
-  if any(k in neg_limpo for k in ["torre", "diabo", "cinco de ouros", "oito de espadas", "nove de espadas", "dez de espadas"]):
-    if nota_base > 1:
-      nota_base -= 1
+    if any(k in neg_limpo for k in ["torre", "diabo", "cinco de ouros", "oito de espadas", "nove de espadas", "dez de espadas"]):
+        if nota_base > 1:
+            nota_base -= 1
 
-  return max(1, min(5, nota_base))
+    return max(1, min(5, nota_base))
 
 
 def inicializar_banco():
-  with sqlite3.connect("rh_diagnostico.db") as conn:
-    cursor = conn.cursor()
-    cursor.execute("""
+    with sqlite3.connect("rh_diagnostico.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS avaliacoes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT,
@@ -130,67 +104,64 @@ def inicializar_banco():
                 sinal_vermelho TEXT
             )
         """)
-    conn.commit()
+        conn.commit()
 
 
 inicializar_banco()
 
 
 def salvar_no_banco(nome, vaga, nivel, data, pontos, classificacao, sinal_vermelho):
-  if not nome or not nome.strip() or nome.strip() in ["Candidato(a)", "Selecionar Candidato Cadastrado..."]:
-    return False
-  with sqlite3.connect("rh_diagnostico.db") as conn:
-    cursor = conn.cursor()
-    cursor.execute(
-        """
+    if not nome or not nome.strip() or nome.strip() in ["Candidato(a)", "Selecionar Candidato Cadastrado..."]:
+        return False
+    with sqlite3.connect("rh_diagnostico.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
             INSERT INTO avaliacoes (nome, vaga, nivel, data, pontos, classificacao, sinal_vermelho)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (nome.strip(), vaga, nivel, data, pontos, classificacao, sinal_vermelho),
-    )
-    conn.commit()
-  return True
+            """,
+            (nome.strip(), vaga, nivel, data, pontos, classificacao, sinal_vermelho),
+        )
+        conn.commit()
+    return True
 
 
-# Inicialização segura de variáveis no session_state
 if "astro_data_raw" not in st.session_state:
-  st.session_state["astro_data_raw"] = "01/01/1999"
+    st.session_state["astro_data_raw"] = "01/01/1999"
 if "astro_local" not in st.session_state:
-  st.session_state["astro_local"] = "São Paulo, SP"
+    st.session_state["astro_local"] = "São Paulo, SP"
 if "astro_hora" not in st.session_state:
-  st.session_state["astro_hora"] = datetime.strptime("12:00", "%H:%M").time()
+    st.session_state["astro_hora"] = datetime.strptime("12:00", "%H:%M").time()
 if "input_nome_cand" not in st.session_state:
-  st.session_state["input_nome_cand"] = ""
+    st.session_state["input_nome_cand"] = ""
 
 if st.session_state.get("reset_trigger", False):
-  st.session_state["input_nome_cand"] = ""
-  st.session_state["input_vaga_cand"] = ""
-  st.session_state["input_nivel_cand"] = "C-Level / Executivo"
-  st.session_state["astro_data_raw"] = "01/01/1999"
-  st.session_state["astro_hora"] = datetime.strptime("12:00", "%H:%M").time()
-  st.session_state["astro_local"] = "São Paulo, SP"
-  st.session_state["ficha_gerada"] = False
-  if "mandala_calculada" in st.session_state:
-    del st.session_state["mandala_calculada"]
-  if "big_three_calculado" in st.session_state:
-    del st.session_state["big_three_calculado"]
-  for i in range(1, 9):
-    st.session_state[f"t_central_{i}"] = ""
-    st.session_state[f"t_negativa_{i}"] = ""
-    st.session_state[f"t_positiva_{i}"] = ""
-    st.session_state[f"t_pontos_{i}"] = 3
-  st.session_state["reset_trigger"] = False
+    st.session_state["input_nome_cand"] = ""
+    st.session_state["input_vaga_cand"] = ""
+    st.session_state["input_nivel_cand"] = "C-Level / Executivo"
+    st.session_state["astro_data_raw"] = "01/01/1999"
+    st.session_state["astro_hora"] = datetime.strptime("12:00", "%H:%M").time()
+    st.session_state["astro_local"] = "São Paulo, SP"
+    st.session_state["ficha_gerada"] = False
+    if "mandala_calculada" in st.session_state:
+        del st.session_state["mandala_calculada"]
+    if "big_three_calculado" in st.session_state:
+        del st.session_state["big_three_calculado"]
+    for i in range(1, 9):
+        st.session_state[f"t_central_{i}"] = ""
+        st.session_state[f"t_negativa_{i}"] = ""
+        st.session_state[f"t_positiva_{i}"] = ""
+        st.session_state[f"t_pontos_{i}"] = 3
+    st.session_state["reset_trigger"] = False
 
 
 def disparar_nova_avaliacao():
-  st.session_state["reset_trigger"] = True
+    st.session_state["reset_trigger"] = True
 
 
 st.title("Sistema de Diagnóstico Corporativo: Tarot & Astrologia para RH")
 st.markdown(
-    "Plataforma unificada de recrutamento e seleção orientada pelo método"
-    " expandido de 8 casas estruturais, tiragem de 3 cartas e mandala"
-    " astrológica com motor astronômico real (Kerykeion)."
+    "Plataforma unificada de recrutamento e seleção orientada pelo método expandido de 8 casas estruturais, tiragem de 3 cartas e mandala astrológica com motor astronômico real (Kerykeion)."
 )
 
 tab1, tab2, tab3 = st.tabs([
@@ -200,925 +171,646 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 DECK_TAROT = [
-    "O Mago",
-    "A Sacerdotisa",
-    "A Imperatriz",
-    "O Imperador",
-    "O Hierofante",
-    "Os Enamorados",
-    "O Carro",
-    "A Justiça",
-    "O Eremita",
-    "A Roda da Fortuna",
-    "A Força",
-    "O Pendurado",
-    "A Morte",
-    "A Temperança",
-    "O Diabo",
-    "A Torre",
-    "A Estrela",
-    "A Lua",
-    "O Sol",
-    "O Julgamento",
-    "O Mundo",
-    "O Louco",
-    "Ás de Ouros",
-    "Dois de Ouros",
-    "Três de Ouros",
-    "Quatro de Ouros",
-    "Cinco de Ouros",
-    "Seis de Ouros",
-    "Sete de Ouros",
-    "Oito de Ouros",
-    "Nove de Ouros",
-    "Dez de Ouros",
-    "Ás de Copas",
-    "Dois de Copas",
-    "Três de Copas",
-    "Quatro de Copas",
-    "Cinco de Copas",
-    "Seis de Copas",
-    "Sete de Copas",
-    "Oito de Copas",
-    "Nove de Copas",
-    "Dez de Copas",
-    "Ás de Espadas",
-    "Dois de Espadas",
-    "Três de Espadas",
-    "Quatro de Espadas",
-    "Cinco de Espadas",
-    "Seis de Espadas",
-    "Sete de Espadas",
-    "Oito de Espadas",
-    "Nove de Espadas",
-    "Dez de Espadas",
-    "Ás de Paus",
-    "Dois de Paus",
-    "Três de Paus",
-    "Quatro de Paus",
-    "Cinco de Paus",
-    "Seis de Paus",
-    "Sete de Paus",
-    "Oito de Paus",
-    "Nove de Paus",
-    "Dez de Paus",
+    "O Mago", "A Sacerdotisa", "A Imperatriz", "O Imperador", "O Hierofante",
+    "Os Enamorados", "O Carro", "A Justiça", "O Eremita", "A Roda da Fortuna",
+    "A Força", "O Pendurado", "A Morte", "A Temperança", "O Diabo", "A Torre",
+    "A Estrela", "A Lua", "O Sol", "O Julgamento", "O Mundo", "O Louco",
+    "Ás de Ouros", "Dois de Ouros", "Três de Ouros", "Quatro de Ouros",
+    "Cinco de Ouros", "Seis de Ouros", "Sete de Ouros", "Oito de Ouros",
+    "Nove de Ouros", "Dez de Ouros", "Ás de Copas", "Dois de Copas",
+    "Três de Copas", "Quatro de Copas", "Cinco de Copas", "Seis de Copas",
+    "Sete de Copas", "Oito de Copas", "Nove de Copas", "Dez de Copas",
+    "Ás de Espadas", "Dois de Espadas", "Três de Espadas", "Quatro de Espadas",
+    "Cinco de Espadas", "Seis de Espadas", "Sete de Espadas", "Oito de Espadas",
+    "Nove de Espadas", "Dez de Espadas", "Ás de Paus", "Dois de Paus",
+    "Três de Paus", "Quatro de Paus", "Cinco de Paus", "Seis de Paus",
+    "Sete de Paus", "Oito de Paus", "Nove de Paus", "Dez de Paus",
 ]
 
 with tab1:
-  col_topo_t1, col_topo_t2 = st.columns([4, 1])
-  with col_topo_t1:
-    st.header("Parâmetros do Candidato e Método de Tiragem (3 Cartas)")
-  with col_topo_t2:
-    st.button(
-        "🔄 Nova Avaliação",
-        on_click=disparar_nova_avaliacao,
-        use_container_width=True,
+    col_topo_t1, col_topo_t2 = st.columns([4, 1])
+    with col_topo_t1:
+        st.header("Parâmetros do Candidato e Método de Tiragem (3 Cartas)")
+    with col_topo_t2:
+        st.button(
+            "🔄 Nova Avaliação",
+            on_click=disparar_nova_avaliacao,
+            use_container_width=True,
+        )
+
+    st.markdown("Selecione o modo de cadastro e preencha as informações do candidato.")
+
+    with sqlite3.connect("rh_diagnostico.db") as conn_db:
+        cursor_db = conn_db.cursor()
+        cursor_db.execute("SELECT DISTINCT nome FROM avaliacoes")
+        candidatos_existentes = [row[0] for row in cursor_db.fetchall() if row[0]]
+
+    tipo_cad = st.radio(
+        "Modo de Candidato",
+        ["Selecionar Existente", "Cadastrar Novo"],
+        index=1,
+        horizontal=True,
+        key="tipo_cad_modo",
     )
 
-  st.markdown(
-      "Selecione o modo de cadastro e preencha as informações do candidato."
-  )
-
-  with sqlite3.connect("rh_diagnostico.db") as conn_db:
-    cursor_db = conn_db.cursor()
-    cursor_db.execute("SELECT DISTINCT nome FROM avaliacoes")
-    candidatos_existentes = [row[0] for row in cursor_db.fetchall() if row[0]]
-
-  tipo_cad = st.radio(
-      "Modo de Candidato",
-      ["Selecionar Existente", "Cadastrar Novo"],
-      index=1,
-      horizontal=True,
-      key="tipo_cad_modo",
-  )
-
-  col_c1, col_c2, col_c3 = st.columns(3)
-  with col_c1:
-    if tipo_cad == "Selecionar Existente":
-      if candidatos_existentes:
-        opcoes_dropdown = ["Selecionar Candidato Cadastrado..."] + candidatos_existentes
-        escolha_cand = st.selectbox(
-            "Candidato(a) Registrado",
-            opcoes_dropdown,
-            key="select_cand_existente_ativo",
-        )
-        if escolha_cand != "Selecionar Candidato Cadastrado...":
-          nome_candidato = escolha_cand
-          st.session_state["input_nome_cand"] = escolha_cand
+    col_c1, col_c2, col_c3 = st.columns(3)
+    with col_c1:
+        if tipo_cad == "Selecionar Existente":
+            if candidatos_existentes:
+                opcoes_dropdown = ["Selecionar Candidato Cadastrado..."] + candidatos_existentes
+                escolha_cand = st.selectbox(
+                    "Candidato(a) Registrado",
+                    opcoes_dropdown,
+                    key="select_cand_existente_ativo",
+                )
+                if escolha_cand != "Selecionar Candidato Cadastrado...":
+                    nome_candidato = escolha_cand
+                    st.session_state["input_nome_cand"] = escolha_cand
+                else:
+                    nome_candidato = ""
+                    st.session_state["input_nome_cand"] = ""
+            else:
+                st.info("Nenhum candidato registrado no banco.")
+                nome_candidato = ""
         else:
-          nome_candidato = ""
-          st.session_state["input_nome_cand"] = ""
-      else:
-        st.info("Nenhum candidato registrado no banco.")
-        nome_candidato = ""
-    else:
-      nome_candidato = st.text_input(
-          "Nome Completo do Novo Candidato(a)", key="input_nome_cand"
-      )
-
-  with col_c2:
-    vaga_cargo = st.text_input("Vaga / Cargo Pretendido", key="input_vaga_cand")
-  with col_c3:
-    nivel_hierarquico = st.selectbox(
-        "Nível Hierárquico",
-        [
-            "C-Level / Executivo",
-            "Diretor",
-            "Gerente",
-            "Supervisor",
-            "Coordenador",
-            "Especialista / Analista",
-            "Técnico",
-            "Operacional",
-        ],
-        key="input_nivel_cand",
-    )
-
-  st.markdown("---")
-  st.subheader("Modo de Geração da Leitura das Cartas")
-  modo_geracao = st.radio(
-      "Selecione como deseja preencher as cartas nas 8 casas:",
-      [
-          "Manual (Preenchimento Direto)",
-          (
-              "Automático (Assistente Especialista com Regras Metodológicas)"
-          ),
-      ],
-      key="radio_modo_tarot",
-  )
-
-  if (
-      modo_geracao
-      == "Automático (Assistente Especialista com Regras Metodológicas)"
-  ):
-    if st.button("🎲 Executar Sorteio e Cálculo Inteligente via Regras"):
-      cartas_embaralhadas = random.sample(DECK_TAROT, len(DECK_TAROT))
-      idx = 0
-      for i in range(1, 9):
-        c_cent = cartas_embaralhadas[idx % len(DECK_TAROT)]
-        idx += 1
-        c_neg = cartas_embaralhadas[idx % len(DECK_TAROT)]
-        idx += 1
-        c_pos = cartas_embaralhadas[idx % len(DECK_TAROT)]
-        idx += 1
-
-        st.session_state[f"t_central_{i}"] = c_cent
-        st.session_state[f"t_negativa_{i}"] = c_neg
-        st.session_state[f"t_positiva_{i}"] = c_pos
-
-        pontos_sugeridos = calcular_nota_metodologica(i, c_cent, c_neg, c_pos)
-        st.session_state[f"t_pontos_{i}"] = pontos_sugeridos
-
-      st.success(
-          "Sorteio e atribuição de notas baseados estritamente nas diretrizes"
-          " metodológicas concluídos com sucesso!"
-      )
-      st.rerun()
-
-  st.markdown("---")
-  st.subheader("Matriz de Avaliação por Casas (Notas de 1 a 5)")
-
-  casas_config = [
-      (
-          1,
-          "Hard Skills (Competência Técnica e Rotina)",
-          "Casa 6 Astrológica",
-      ),
-      (
-          2,
-          "Soft Skills (Inteligência Social e Comunicação)",
-          "Casa 3 Astrológica",
-      ),
-      (
-          3,
-          "Fit Cultural (Alinhamento de Valores e Coletivo)",
-          "Casa 11 Astrológica",
-      ),
-      (
-          4,
-          "Desafios (Pontos Cegos e Autossabotagem)",
-          "Casa 12 Astrológica",
-      ),
-      (
-          5,
-          "Potencial Futuro (Projeção e Liderança de Longo Prazo)",
-          "Casa 10 Astrológica",
-      ),
-      (
-          6,
-          "Equilíbrio Emocional (Resiliência sob Pressão)",
-          "Casa 4 Astrológica",
-      ),
-      (
-          7,
-          "Saúde Psicológica (Foco Cognitivo e Burnout)",
-          "Casa 1 Astrológica",
-      ),
-      (
-          8,
-          "Confiabilidade e Ética (Compliance e Acordos)",
-          "Casa 8 Astrológica",
-      ),
-  ]
-
-  col_esq, col_dir = st.columns(2)
-  for num, titulo, base_astro in casas_config:
-    col_alvo = col_esq if num <= 4 else col_dir
-    with col_alvo:
-      with st.expander(f"Casa {num}: {titulo} — [{base_astro}]"):
-        st.text_input(
-            "Arcano Central (Resposta)",
-            key=f"t_central_{num}",
-            placeholder="Ex: O Mago",
-        )
-        st.text_input(
-            "Carta Negativa (Dificuldades)",
-            key=f"t_negativa_{num}",
-            placeholder="Ex: Ás de Ouros",
-        )
-        st.text_input(
-            "Carta Positiva (Pontos Fortes)",
-            key=f"t_positiva_{num}",
-            placeholder="Ex: 4 de Copas",
-        )
-        st.number_input(
-            "Nota (1-5)", min_value=1, max_value=5, value=3, key=f"t_pontos_{num}"
-        )
-
-  st.markdown("")
-  with st.expander("📂 Consulta Opcional de Histórico de Candidatos"):
-    with sqlite3.connect("rh_diagnostico.db") as conn_hist:
-      df_h_temp = pd.read_sql_query(
-          "SELECT nome, vaga, nivel, data, pontos, classificacao FROM avaliacoes",
-          conn_hist,
-      )
-    if not df_h_temp.empty:
-      st.dataframe(df_h_temp, use_container_width=True, hide_index=True)
-    else:
-      st.info("Nenhum histórico gravado no banco de dados.")
-
-with tab2:
-  st.header("Motor Astrológico e Mandala de 12 Casas (Kerykeion Real)")
-  st.markdown(
-      "Insira as coordenadas e dados de nascimento para calcular as posições"
-      " reais de efemérides via Kerykeion."
-  )
-
-  if not KERYKEION_DISPONIVEL:
-    st.warning(
-        "⚠️ A biblioteca **kerykeion** ainda não foi detectada. Certifique-se"
-        " de executar `pip install kerykeion` com o ambiente virtual ativo."
-    )
-
-  col_astro1, col_astro2 = st.columns(2)
-  with col_astro1:
-    data_nasc_raw = st.text_input(
-        "Data de Nascimento (Apenas números ou DD/MM/AAAA)",
-        placeholder="Ex: 02051978 ou 02/05/1978",
-        key="astro_data_raw",
-    )
-    local_nasc = st.text_input(
-        "Local de Nascimento (Cidade/Estado)",
-        placeholder="Ex: São Paulo, SP",
-        key="astro_local",
-    )
-  with col_astro2:
-    hora_nasc = st.time_input(
-        "Horário de Nascimento",
-        key="astro_hora",
-    )
-    sistema_casas = st.selectbox(
-        "Sistema de Casas",
-        ["Plácidus", "Koch", "Signo Inteiro"],
-        key="astro_sistema",
-    )
-
-
-  def calcular_mandala_real(d_nasc_str, h_nasc, loc):
-    if not d_nasc_str or h_nasc is None or not loc or not loc.strip():
-      st.error(
-          "⚠️ Preencha a Data, o Horário e o Local de Nascimento para"
-          " processar a mandala astrológica."
-      )
-      return None, None
-
-    digits = "".join(filter(str.isdigit, d_nasc_str))
-    if len(digits) != 8:
-      st.error(
-          "❌ Formato de data inválido. Digite os 8 números corretamente "
-          "(ex: 02051978 ou 02/05/1978)."
-      )
-      return None, None
-
-    try:
-      d_nasc = datetime.strptime(digits, "%d%m%Y").date()
-    except ValueError:
-      st.error("❌ Data inválida (ex: dia ou mês inexistente).")
-      return None, None
-
-    geolocator = Nominatim(user_agent="rh_astrology_real_v15")
-    lat, lon = None, None
-    try:
-      loc_obj = geolocator.geocode(loc)
-      if loc_obj:
-        lat, lon = loc_obj.latitude, loc_obj.longitude
-      else:
-        st.error(
-            f"❌ Não foi possível encontrar coordenadas geográficas para"
-            f" '{loc}'. Verifique se o nome da cidade e estado estão corretos"
-            " (ex: São Paulo, SP)."
-        )
-        return None, None
-    except Exception as e:
-      st.error(f"❌ Erro de conexão ao buscar geolocalização: {e}")
-      return None, None
-
-    if KERYKEION_DISPONIVEL:
-      try:
-        subject = AstrologicalSubject(
-            name="Candidato",
-            year=d_nasc.year,
-            month=d_nasc.month,
-            day=d_nasc.day,
-            hour=h_nasc.hour,
-            minute=h_nasc.minute,
-            city=loc,
-            nation="BR",
-            lat=lat,
-            lng=lon,
-            tz_str="America/Sao_Paulo",
-        )
-
-        def extrair_signo_grau(obj_attr):
-          if not obj_attr:
-            return "Desconhecido", 0.0
-          if isinstance(obj_attr, dict):
-            s = obj_attr.get("sign", "Desconhecido")
-            p = obj_attr.get("position", obj_attr.get("pos", 0.0))
-          else:
-            s = getattr(obj_attr, "sign", "Desconhecido")
-            p = getattr(obj_attr, "position", getattr(obj_attr, "pos", 0.0))
-          s_trad = TRADUCAO_SIGNOS.get(s, s)
-          return s_trad, p
-
-        sun_s, sun_p = extrair_signo_grau(getattr(subject, "sun", None))
-        moon_s, moon_p = extrair_signo_grau(getattr(subject, "moon", None))
-        asc_s, asc_p = extrair_signo_grau(
-            getattr(subject, "first_house", None)
-        )
-
-        big_three = {
-            "Solar": {
-                "signo": sun_s,
-                "grau": f"{int(sun_p % 30)}° {int((sun_p % 1) * 60)}'",
-            },
-            "Ascendente": {
-                "signo": asc_s,
-                "grau": f"{int(asc_p % 30)}° {int((asc_p % 1) * 60)}'",
-            },
-            "Lunar": {
-                "signo": moon_s,
-                "grau": f"{int(moon_p % 30)}° {int((moon_p % 1) * 60)}'",
-            },
-        }
-
-        casas_res = {}
-        house_attrs = [
-            "first_house",
-            "second_house",
-            "third_house",
-            "fourth_house",
-            "fifth_house",
-            "sixth_house",
-            "seventh_house",
-            "eighth_house",
-            "ninth_house",
-            "tenth_house",
-            "eleventh_house",
-            "twelfth_house",
-        ]
-        for i, attr in enumerate(house_attrs, start=1):
-          if hasattr(subject, attr):
-            h_obj = getattr(subject, attr)
-            signo, pos = extrair_signo_grau(h_obj)
-          else:
-            signo, pos = "Desconhecido", 0.0
-
-          grau_int = int(pos % 30)
-          min_int = int((pos % 1) * 60)
-          casas_res[f"Casa {i}"] = {
-              "signo": signo,
-              "grau": f"{grau_int}° {min_int}'",
-              "analise": (
-                  f"Posicionamento real calculado no signo de {signo} a"
-                  f" {pos:.2f}° na eclíptica (Sistema de Casas"
-                  f" {sistema_casas} | Local: {loc})."
-              ),
-          }
-        return casas_res, big_three
-      except Exception as e:
-        st.error(f"Erro no cálculo do Kerykeion: {e}")
-        return None, None
-
-    signos = [
-        "Áries",
-        "Touro",
-        "Gêmeos",
-        "Câncer",
-        "Leão",
-        "Virgem",
-        "Libra",
-        "Escorpião",
-        "Sagitário",
-        "Capricórnio",
-        "Aquário",
-        "Peixes",
-    ]
-    seed = (
-        d_nasc.toordinal()
-        + int(h_nasc.hour * 60 + h_nasc.minute)
-        + abs(hash(loc)) % 1000
-    )
-    big_three = {
-        "Solar": {"signo": signos[seed % 12], "grau": "12° 0'"},
-        "Ascendente": {"signo": signos[(seed + 6) % 12], "grau": "8° 15'"},
-        "Lunar": {"signo": signos[(seed + 3) % 12], "grau": "15° 30'"},
-    }
-    casas_res = {}
-    for c in range(1, 13):
-      s_idx = (seed + c * 7) % 12
-      g = (seed * c * 3) % 30
-      casas_res[f"Casa {c}"] = {
-          "signo": signos[s_idx],
-          "grau": f"{g}°",
-          "analise": f"Posicionamento parametrizado para {loc}.",
-      }
-    return casas_res, big_three
-
-
-  if st.button("Processar Mandala Astrológica Real"):
-    with st.spinner(
-        "Calculando efemérides celestes reais via Kerykeion para o local"
-        " informado..."
-    ):
-      mandala, big_three = calcular_mandala_real(
-          data_nasc_raw, hora_nasc, local_nasc
-      )
-      if mandala and big_three:
-        st.session_state["mandala_calculada"] = mandala
-        st.session_state["big_three_calculado"] = big_three
-        st.success("Mapeamento astrológico de alta precisão concluído!")
-
-  if "mandala_calculada" in st.session_state:
-    if "big_three_calculado" in st.session_state:
-      b3 = st.session_state["big_three_calculado"]
-      st.markdown(
-          "### Trindade Principal (Signo Solar, Ascendente e Lunar)"
-      )
-      col_b1, col_b2, col_b3 = st.columns(3)
-      with col_b1:
-        st.markdown(
-            f"""
-                <div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-                    <span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Solar</span>
-                    <div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Solar']['signo']}</div>
-                    <div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Solar']['grau']}</div>
-                </div>
-                """,
-            unsafe_allow_html=True,
-        )
-      with col_b2:
-        st.markdown(
-            f"""
-                <div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-                    <span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Ascendente</span>
-                    <div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Ascendente']['signo']}</div>
-                    <div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Ascendente']['grau']}</div>
-                </div>
-                """,
-            unsafe_allow_html=True,
-        )
-      with col_b3:
-        st.markdown(
-            f"""
-                <div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-                    <span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Lunar</span>
-                    <div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Lunar']['signo']}</div>
-                    <div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Lunar']['grau']}</div>
-                </div>
-                """,
-            unsafe_allow_html=True,
-        )
-      st.markdown("")
-
-    st.markdown("### Resultado da Mandala das 12 Casas (Kerykeion Real)")
-    mandala_items = list(st.session_state["mandala_calculada"].items())
-    for idx_linha in range(0, len(mandala_items), 3):
-      cols_grid = st.columns(3)
-      for col_idx in range(3):
-        if idx_linha + col_idx < len(mandala_items):
-          k, v = mandala_items[idx_linha + col_idx]
-          with cols_grid[col_idx]:
-            st.markdown(
-                f"""
-                    <div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 12px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <div style="font-size: 12px; color: #00cc96; font-weight: 700; text-transform: uppercase;">{k}</div>
-                            <div style="font-size: 17px; color: #ffffff; font-weight: 700; margin-top: 4px;">{v['signo']} <span style="font-size: 12px; color: #a0aec0; font-weight: normal;">({v['grau']})</span></div>
-                        </div>
-                        <div style="font-size: 11px; color: #cbd5e0; margin-top: 8px; border-top: 1px solid #2d3748; padding-top: 6px; line-height: 1.3;">{v['analise']}</div>
-                    </div>
-                    """,
-                unsafe_allow_html=True,
+            nome_candidato = st.text_input(
+                "Nome Completo do Novo Candidato(a)", key="input_nome_cand"
             )
-  else:
-    st.info(
-        "Nenhuma mandala calculada na sessão atual. Preencha os dados e clique"
-        " em 'Processar Mandala Astrológica Real'."
+
+    with col_c2:
+        vaga_cargo = st.text_input("Vaga / Cargo Pretendido", key="input_vaga_cand")
+    with col_c3:
+        nivel_hierarquico = st.selectbox(
+            "Nível Hierárquico",
+            [
+                "C-Level / Executivo", "Diretor", "Gerente", "Supervisor",
+                "Coordenador", "Especialista / Analista", "Técnico", "Operacional",
+            ],
+            key="input_nivel_cand",
+        )
+
+    st.markdown("---")
+    st.subheader("Modo de Geração da Leitura das Cartas")
+    modo_geracao = st.radio(
+        "Selecione como deseja preencher as cartas nas 8 casas:",
+        [
+            "Manual (Preenchimento Direto)",
+            "Automático (Assistente Especialista com Regras Metodológicas)",
+        ],
+        key="radio_modo_tarot",
     )
 
-with tab3:
-  st.header("FICHA DE AVALIAÇÃO PARA RECRUTAMENTO E CRUZAMENTO ANALÍTICO")
-  st.markdown(
-      "Documento oficial de governança integrando a Ficha de Avaliação"
-      " Profissional em Tabela, o cruzamento de arcanos e as efemérides"
-      " astrológicas."
-  )
+    if modo_geracao == "Automático (Assistente Especialista com Regras Metodológicas)":
+        if st.button("🎲 Executar Sorteio e Cálculo Inteligente via Regras"):
+            cartas_embaralhadas = random.sample(DECK_TAROT, len(DECK_TAROT))
+            idx = 0
+            for i in range(1, 9):
+                c_cent = cartas_embaralhadas[idx % len(DECK_TAROT)]
+                idx += 1
+                c_neg = cartas_embaralhadas[idx % len(DECK_TAROT)]
+                idx += 1
+                c_pos = cartas_embaralhadas[idx % len(DECK_TAROT)]
+                idx += 1
 
-  if st.button("Gerar Ficha de Avaliação e Súmula Executiva"):
-    st.session_state["ficha_gerada"] = True
+                st.session_state[f"t_central_{i}"] = c_cent
+                st.session_state[f"t_negativa_{i}"] = c_neg
+                st.session_state[f"t_positiva_{i}"] = c_pos
 
-  if st.session_state.get("ficha_gerada", False):
-    pontuacoes = [
-        st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)
+                pontos_sugeridos = calcular_nota_metodologica(i, c_cent, c_neg, c_pos)
+                st.session_state[f"t_pontos_{i}"] = pontos_sugeridos
+
+            st.success("Sorteio e atribuição de notas baseados estritamente nas diretrizes metodológicas concluídos com sucesso!")
+            st.rerun()
+
+    st.markdown("---")
+    st.subheader("Matriz de Avaliação por Casas (Notas de 1 a 5)")
+
+    casas_config = [
+        (1, "Hard Skills (Competência Técnica e Rotina)", "Casa 6 Astrológica"),
+        (2, "Soft Skills (Inteligência Social e Comunicação)", "Casa 3 Astrológica"),
+        (3, "Fit Cultural (Alinhamento de Valores e Coletivo)", "Casa 11 Astrológica"),
+        (4, "Desafios (Pontos Cegos e Autossabotagem)", "Casa 12 Astrológica"),
+        (5, "Potencial Futuro (Projeção e Liderança de Longo Prazo)", "Casa 10 Astrológica"),
+        (6, "Equilíbrio Emocional (Resiliência sob Pressão)", "Casa 4 Astrológica"),
+        (7, "Saúde Psicológica (Foco Cognitivo e Burnout)", "Casa 1 Astrológica"),
+        (8, "Confiabilidade e Ética (Compliance e Acordos)", "Casa 8 Astrológica"),
     ]
-    total_pontos = sum(pontuacoes)
 
-    p6 = st.session_state.get("t_pontos_6", 3)
-    p7 = st.session_state.get("t_pontos_7", 3)
-    p8 = st.session_state.get("t_pontos_8", 3)
-
-    sinal_vermelho = "Sim" if (p6 <= 2 or p7 <= 2 or p8 <= 2) else "Não"
-
-    if total_pontos >= 32:
-      classificacao = (
-          "Altamente Recomendado (32 a 40 pontos: Alinhamento excelente)"
-      )
-    elif total_pontos >= 24:
-      classificacao = (
-          "Recomendado com Ressalvas (24 a 31 pontos: Exige desenvolvimento)"
-      )
-    else:
-      classificacao = (
-          "Não Recomendado (Abaixo de 24 pontos: Riscos severos)"
-      )
-
-    c_nome = st.session_state.get("input_nome_cand", "Candidato(a)")
-    c_vaga = st.session_state.get("input_vaga_cand", "Cargo")
-    c_nivel = st.session_state.get("input_nivel_cand", "Nível")
-    mandala_dados = st.session_state.get("mandala_calculada", {})
-    big_three_dados = st.session_state.get("big_three_calculado", {})
-    data_atual = datetime.now().strftime("%d / %m / %Y")
-
-    st.markdown("---")
-    st.markdown("### 📋 FICHA DE AVALIAÇÃO PARA RECRUTAMENTO")
-    col_f1, col_f2, col_f3 = st.columns([3, 2, 2])
-    with col_f1:
-      st.markdown(f"**CANDIDATO(A):** {c_nome}")
-    with col_f2:
-      st.markdown(f"**VAGA / CARGO:** {c_vaga} ({c_nivel})")
-    with col_f3:
-      st.markdown(f"**DATA:** {data_atual}")
-
-    st.markdown("---")
-
-    if "(" in classificacao:
-      partes = classificacao.split("(", 1)
-      status_titulo = partes[0].strip()
-      status_detalhe = "(" + partes[1].strip()
-    else:
-      status_titulo = classificacao
-      status_detalhe = ""
-
-    col_res1, col_res2 = st.columns([1, 2])
-    with col_res1:
-      st.markdown(
-          f"""
-            <div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
-                <span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Pontuação Total</span>
-                <div style="font-size: 24px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_pontos} <span style="font-size: 14px; color: #718096; font-weight: normal;">/ 40</span></div>
-            </div>
-            """,
-          unsafe_allow_html=True,
-      )
-    with col_res2:
-      st.markdown(
-          f"""
-            <div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
-                <span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Classificação Final</span>
-                <div style="font-size: 15px; color: #ffffff; font-weight: 600; margin-top: 3px; line-height: 1.3;">{status_titulo} <span style="font-size: 13px; color: #cbd5e0; font-weight: normal; display: block; margin-top: 2px;">{status_detalhe}</span></div>
-            </div>
-            """,
-          unsafe_allow_html=True,
-      )
+    col_esq, col_dir = st.columns(2)
+    for num, titulo, base_astro in casas_config:
+        col_alvo = col_esq if num <= 4 else col_dir
+        with col_alvo:
+            with st.expander(f"Casa {num}: {titulo} — [{base_astro}]"):
+                st.text_input("Arcano Central (Resposta)", key=f"t_central_{num}", placeholder="Ex: O Mago")
+                st.text_input("Carta Negativa (Dificuldades)", key=f"t_negativa_{num}", placeholder="Ex: Ás de Ouros")
+                st.text_input("Carta Positiva (Pontos Fortes)", key=f"t_positiva_{num}", placeholder="Ex: 4 de Copas")
+                st.number_input("Nota (1-5)", min_value=1, max_value=5, value=3, key=f"t_pontos_{num}")
 
     st.markdown("")
-    if sinal_vermelho == "Sim":
-      st.error(
-          "🚨 SINAL VERMELHO ATIVADO: ( X ) Sim   (   ) Não — Identificado"
-          " risco crítico nas Casas 6, 7 ou 8 com nota 1 ou 2."
-      )
+    with st.expander("📂 Consulta Opcional de Histórico de Candidatos"):
+        with sqlite3.connect("rh_diagnostico.db") as conn_hist:
+            df_h_temp = pd.read_sql_query(
+                "SELECT nome, vaga, nivel, data, pontos, classificacao FROM avaliacoes",
+                conn_hist,
+            )
+        if not df_h_temp.empty:
+            st.dataframe(df_h_temp, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum histórico gravado no banco de dados.")
+
+with tab2:
+    st.header("Motor Astrológico e Mandala de 12 Casas (Kerykeion Real)")
+    st.markdown("Insira as coordenadas e dados de nascimento para calcular as posições reais de efemérides via Kerykeion.")
+
+    if not KERYKEION_DISPONIVEL:
+        st.warning("⚠️ A biblioteca **kerykeion** ainda não foi detectada. Certifique-se de executar `pip install kerykeion`.")
+
+    col_astro1, col_astro2 = st.columns(2)
+    with col_astro1:
+        data_nasc_raw = st.text_input(
+            "Data de Nascimento (Apenas números ou DD/MM/AAAA)",
+            placeholder="Ex: 02051978 ou 02/05/1978",
+            key="astro_data_raw",
+        )
+        local_nasc = st.text_input(
+            "Local de Nascimento (Cidade/Estado)",
+            placeholder="Ex: São Paulo, SP",
+            key="astro_local",
+        )
+    with col_astro2:
+        hora_nasc = st.time_input("Horário de Nascimento", key="astro_hora")
+        sistema_casas = st.selectbox("Sistema de Casas", ["Plácidus", "Koch", "Signo Inteiro"], key="astro_sistema")
+
+    def calcular_mandala_real(d_nasc_str, h_nasc, loc):
+        if not d_nasc_str or h_nasc is None or not loc or not loc.strip():
+            st.error("⚠️ Preencha a Data, o Horário e o Local de Nascimento para processar a mandala astrológica.")
+            return None, None
+
+        digits = "".join(filter(str.isdigit, d_nasc_str))
+        if len(digits) != 8:
+            st.error("❌ Formato de data inválido. Digite os 8 números corretamente (ex: 02051978 ou 02/05/1978).")
+            return None, None
+
+        try:
+            d_nasc = datetime.strptime(digits, "%d%m%Y").date()
+        except ValueError:
+            st.error("❌ Data inválida (ex: dia ou mês inexistente).")
+            return None, None
+
+        geolocator = Nominatim(user_agent="rh_astrology_real_v15")
+        lat, lon = None, None
+        try:
+            loc_obj = geolocator.geocode(loc)
+            if loc_obj:
+                lat, lon = loc_obj.latitude, loc_obj.longitude
+            else:
+                st.error(f"❌ Não foi possível encontrar coordenadas geográficas para '{loc}'.")
+                return None, None
+        except Exception as e:
+            st.error(f"❌ Erro de conexão ao buscar geolocalização: {e}")
+            return None, None
+
+        if KERYKEION_DISPONIVEL:
+            try:
+                subject = AstrologicalSubject(
+                    name="Candidato", year=d_nasc.year, month=d_nasc.month, day=d_nasc.day,
+                    hour=h_nasc.hour, minute=h_nasc.minute, city=loc, nation="BR",
+                    lat=lat, lng=lon, tz_str="America/Sao_Paulo",
+                )
+
+                def extrair_signo_grau(obj_attr):
+                    if not obj_attr:
+                        return "Desconhecido", 0.0
+                    if isinstance(obj_attr, dict):
+                        s = obj_attr.get("sign", "Desconhecido")
+                        p = obj_attr.get("position", obj_attr.get("pos", 0.0))
+                    else:
+                        s = getattr(obj_attr, "sign", "Desconhecido")
+                        p = getattr(obj_attr, "position", getattr(obj_attr, "pos", 0.0))
+                    s_trad = TRADUCAO_SIGNOS.get(s, s)
+                    return s_trad, p
+
+                sun_s, sun_p = extrair_signo_grau(getattr(subject, "sun", None))
+                moon_s, moon_p = extrair_signo_grau(getattr(subject, "moon", None))
+                asc_s, asc_p = extrair_signo_grau(getattr(subject, "first_house", None))
+
+                big_three = {
+                    "Solar": {"signo": sun_s, "grau": f"{int(sun_p % 30)}° {int((sun_p % 1) * 60)}'"},
+                    "Ascendente": {"signo": asc_s, "grau": f"{int(asc_p % 30)}° {int((asc_p % 1) * 60)}'"},
+                    "Lunar": {"signo": moon_s, "grau": f"{int(moon_p % 30)}° {int((moon_p % 1) * 60)}'"},
+                }
+
+                casas_res = {}
+                house_attrs = [
+                    "first_house", "second_house", "third_house", "fourth_house",
+                    "fifth_house", "sixth_house", "seventh_house", "eighth_house",
+                    "ninth_house", "tenth_house", "eleventh_house", "twelfth_house",
+                ]
+                for i, attr in enumerate(house_attrs, start=1):
+                    if hasattr(subject, attr):
+                        h_obj = getattr(subject, attr)
+                        signo, pos = extrair_signo_grau(h_obj)
+                    else:
+                        signo, pos = "Desconhecido", 0.0
+
+                    grau_int = int(pos % 30)
+                    min_int = int((pos % 1) * 60)
+                    casas_res[f"Casa {i}"] = {
+                        "signo": signo,
+                        "grau": f"{grau_int}° {min_int}'",
+                        "analise": f"Posicionamento real calculado no signo de {signo} a {pos:.2f}° na eclíptica (Sistema de Casas {sistema_casas} | Local: {loc}).",
+                    }
+                return casas_res, big_three
+            except Exception as e:
+                st.error(f"Erro no cálculo do Kerykeion: {e}")
+                return None, None
+
+        signos = ["Áries", "Touro", "Gêmeos", "Câncer", "Leão", "Virgem", "Libra", "Escorpião", "Sagitário", "Capricórnio", "Aquário", "Peixes"]
+        seed = d_nasc.toordinal() + int(h_nasc.hour * 60 + h_nasc.minute) + abs(hash(loc)) % 1000
+        big_three = {
+            "Solar": {"signo": signos[seed % 12], "grau": "12° 0'"},
+            "Ascendente": {"signo": signos[(seed + 6) % 12], "grau": "8° 15'"},
+            "Lunar": {"signo": signos[(seed + 3) % 12], "grau": "15° 30'"},
+        }
+        casas_res = {}
+        for c in range(1, 13):
+            s_idx = (seed + c * 7) % 12
+            g = (seed * c * 3) % 30
+            casas_res[f"Casa {c}"] = {
+                "signo": signos[s_idx],
+                "grau": f"{g}°",
+                "analise": f"Posicionamento parametrizado para {loc}.",
+            }
+        return casas_res, big_three
+
+
+    if st.button("Processar Mandala Astrológica Real"):
+        with st.spinner("Calculando efemérides celestes reais via Kerykeion para o local informado..."):
+            mandala, big_three = calcular_mandala_real(data_nasc_raw, hora_nasc, local_nasc)
+            if mandala and big_three:
+                st.session_state["mandala_calculada"] = mandala
+                st.session_state["big_three_calculado"] = big_three
+                st.success("Mapeamento astrológico de alta precisão concluído!")
+
+    if "mandala_calculada" in st.session_state:
+        if "big_three_calculado" in st.session_state:
+            b3 = st.session_state["big_three_calculado"]
+            st.markdown("### Trindade Principal (Signo Solar, Ascendente e Lunar)")
+            col_b1, col_b2, col_b3 = st.columns(3)
+            with col_b1:
+                st.markdown(
+                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Solar</span>
+<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Solar']['signo']}</div>
+<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Solar']['grau']}</div>
+</div>""",
+                    unsafe_allow_html=True,
+                )
+            with col_b2:
+                st.markdown(
+                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Ascendente</span>
+<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Ascendente']['signo']}</div>
+<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Ascendente']['grau']}</div>
+</div>""",
+                    unsafe_allow_html=True,
+                )
+            with col_b3:
+                st.markdown(
+                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Lunar</span>
+<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Lunar']['signo']}</div>
+<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Lunar']['grau']}</div>
+</div>""",
+                    unsafe_allow_html=True,
+                )
+            st.markdown("")
+
+        st.markdown("### Resultado da Mandala das 12 Casas (Kerykeion Real)")
+        mandala_items = list(st.session_state["mandala_calculada"].items())
+        for idx_linha in range(0, len(mandala_items), 3):
+            cols_grid = st.columns(3)
+            for col_idx in range(3):
+                if idx_linha + col_idx < len(mandala_items):
+                    k, v = mandala_items[idx_linha + col_idx]
+                    with cols_grid[col_idx]:
+                        st.markdown(
+                            f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 12px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;">
+<div>
+<div style="font-size: 12px; color: #00cc96; font-weight: 700; text-transform: uppercase;">{k}</div>
+<div style="font-size: 17px; color: #ffffff; font-weight: 700; margin-top: 4px;">{v['signo']} <span style="font-size: 12px; color: #a0aec0; font-weight: normal;">({v['grau']})</span></div>
+</div>
+<div style="font-size: 11px; color: #cbd5e0; margin-top: 8px; border-top: 1px solid #2d3748; padding-top: 6px; line-height: 1.3;">{v['analise']}</div>
+</div>""",
+                            unsafe_allow_html=True,
+                        )
     else:
-      st.success(
-          "✅ SINAL VERMELHO DESATIVADO: (   ) Sim   ( X ) Não — Nenhuma restrição"
-          " severa nas bases emocionais, psicológicas ou éticas."
-      )
+        st.info("Nenhuma mandala calculada na sessão atual. Preencha os dados e clique em 'Processar Mandala Astrológica Real'.")
 
-    st.markdown("---")
+with tab3:
+    st.header("FICHA DE AVALIAÇÃO PARA RECRUTAMENTO E CRUZAMENTO ANALÍTICO")
+    st.markdown("Documento oficial de governança integrando a Ficha de Avaliação Profissional em Tabela, o cruzamento de arcanos e as efemérides astrológicas.")
 
-    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
-        "Sumário Executivo e Gráfico",
-        "Tabela e Cruzamento Astrológico",
-        "Histórico e Banco de Dados",
-    ])
+    if st.button("Gerar Ficha de Avaliação e Súmula Executiva"):
+        st.session_state["ficha_gerada"] = True
 
-    with sub_tab1:
-      st.markdown("### Visão Radar de Competências (8 Casas)")
+    if st.session_state.get("ficha_gerada", False):
+        pontuacoes = [st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)]
+        total_pontos = sum(pontuacoes)
 
-      categories = [
-          "Hard Skills",
-          "Soft Skills",
-          "Fit Cultural",
-          "Desafios",
-          "Potencial Futuro",
-          "Equilíbrio Emocional",
-          "Saúde Psicológica",
-          "Confiabilidade e Ética",
-      ]
+        p6 = st.session_state.get("t_pontos_6", 3)
+        p7 = st.session_state.get("t_pontos_7", 3)
+        p8 = st.session_state.get("t_pontos_8", 3)
 
-      fig = go.Figure()
-      fig.add_trace(
-          go.Scatterpolar(
-              r=pontuacoes + [pontuacoes[0]],
-              theta=categories + [categories[0]],
-              fill="toself",
-              name="Candidato",
-              line_color="#00cc96",
-              fillcolor="rgba(0, 204, 150, 0.25)",
-          )
-      )
+        sinal_vermelho = "Sim" if (p6 <= 2 or p7 <= 2 or p8 <= 2) else "Não"
 
-      fig.update_layout(
-          polar=dict(
-              radialaxis=dict(visible=True, range=[0, 5], dtick=1),
-              bgcolor="rgba(22, 26, 29, 0.6)",
-          ),
-          paper_bgcolor="rgba(0,0,0,0)",
-          plot_bgcolor="rgba(0,0,0,0)",
-          margin=dict(l=40, r=40, t=30, b=30),
-          height=380,
-          showlegend=False,
-      )
+        if total_pontos >= 32:
+            classificacao = "Altamente Recomendado (32 a 40 pontos: Alinhamento excelente)"
+        elif total_pontos >= 24:
+            classificacao = "Recomendado com Ressalvas (24 a 31 pontos: Exige desenvolvimento)"
+        else:
+            classificacao = "Não Recomendado (Abaixo de 24 pontos: Riscos severos)"
 
-      st.plotly_chart(fig, use_container_width=True)
+        c_nome = st.session_state.get("input_nome_cand", "Candidato(a)")
+        c_vaga = st.session_state.get("input_vaga_cand", "Cargo")
+        c_nivel = st.session_state.get("input_nivel_cand", "Nível")
+        mandala_dados = st.session_state.get("mandala_calculada", {})
+        big_three_dados = st.session_state.get("big_three_calculado", {})
+        data_atual = datetime.now().strftime("%d / %m / %Y")
 
-      st.markdown("### Parecer Final do Avaliador")
-      parecer_texto = (
-          f"Perfil avaliado para **{c_nome}**, concorrendo ao cargo de "
-          f"**{vaga_cargo}** no nível **{nivel_hierarquico}**. O somatório "
-          f"métrico de **{total_pontos} pontos** resulta na classificação "
-          f"*{classificacao}*. O cruzamento estruturado entre o método de "
-          "tarologia corporativa de 3 cartas e a mandala astrológica real "
-          "fornece segurança institucional plena para o processo de tomada de "
-          "decisão."
-      )
-      st.write(parecer_texto)
+        st.markdown("---")
+        st.markdown("### 📋 FICHA DE AVALIAÇÃO PARA RECRUTAMENTO")
+        col_f1, col_f2, col_f3 = st.columns([3, 2, 2])
+        with col_f1:
+            st.markdown(f"**CANDIDATO(A):** {c_nome}")
+        with col_f2:
+            st.markdown(f"**VAGA / CARGO:** {c_vaga} ({c_nivel})")
+        with col_f3:
+            st.markdown(f"**DATA:** {data_atual}")
 
-      def gerar_pdf_relatorio():
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        
-        # Cabeçalho
-        pdf.set_font("helvetica", "B", 12)
-        pdf.cell(
-            0,
-            8,
-            "SISTEMA DE DIAGNOSTICO CORPORATIVO - LAUDO EXECUTIVO",
-            0,
-            1,
-            "C",
-        )
-        pdf.set_font("helvetica", "", 8)
-        pdf.cell(
-            0,
-            4,
-            "Recrutamento e Selecao | Metodo Integrado de 8 Casas e Astrologia",
-            0,
-            1,
-            "C",
-        )
-        pdf.ln(3)
+        st.markdown("---")
 
-        # Dados do Candidato
-        pdf.set_font("helvetica", "B", 9)
-        pdf.cell(0, 5, f"Candidato(a): {c_nome}", 0, 1)
-        pdf.cell(0, 5, f"Cargo/Vaga: {c_vaga} ({c_nivel})", 0, 1)
-        pdf.cell(0, 5, f"Data da Avaliacao: {data_atual}", 0, 1)
-        pdf.ln(2)
+        if "(" in classificacao:
+            partes = classificacao.split("(", 1)
+            status_titulo = partes[0].strip()
+            status_detalhe = "(" + partes[1].strip()
+        else:
+            status_titulo = classificacao
+            status_detalhe = ""
 
-        # Resultados globais
-        pdf.cell(0, 5, f"Pontuacao Total: {total_pontos} / 40", 0, 1)
-        pdf.cell(0, 5, f"Classificacao Final: {classificacao}", 0, 1)
-        pdf.cell(0, 5, f"Sinal Vermelho Ativado: {sinal_vermelho}", 0, 1)
-        pdf.ln(3)
+        col_res1, col_res2 = st.columns([1, 2])
+        with col_res1:
+            st.markdown(
+                f"""<div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Pontuação Total</span>
+<div style="font-size: 24px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_pontos} <span style="font-size: 14px; color: #718096; font-weight: normal;">/ 40</span></div>
+</div>""",
+                unsafe_allow_html=True,
+            )
+        with col_res2:
+            st.markdown(
+                f"""<div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Classificação Final</span>
+<div style="font-size: 15px; color: #ffffff; font-weight: 600; margin-top: 3px; line-height: 1.3;">{status_titulo} <span style="font-size: 13px; color: #cbd5e0; font-weight: normal; display: block; margin-top: 2px;">{status_detalhe}</span></div>
+</div>""",
+                unsafe_allow_html=True,
+            )
 
-        # Astrologia (Trindade Principal)
-        if big_three_dados:
-          pdf.set_font("helvetica", "B", 9)
-          pdf.cell(0, 5, "Trindade Principal (Astrologia)", 0, 1)
-          pdf.set_font("helvetica", "", 8)
-          b3_txt = (
-              f"Solar: {big_three_dados.get('Solar', {}).get('signo', '-')} "
-              f"({big_three_dados.get('Solar', {}).get('grau', '')}) | "
-              f"Ascendente: {big_three_dados.get('Ascendente', {}).get('signo', '-')} "
-              f"({big_three_dados.get('Ascendente', {}).get('grau', '')}) | "
-              f"Lunar: {big_three_dados.get('Lunar', {}).get('signo', '-')} "
-              f"({big_three_dados.get('Lunar', {}).get('grau', '')})"
-          )
-          pdf.multi_cell(0, 4, b3_txt)
-          pdf.ln(3)
+        st.markdown("")
+        if sinal_vermelho == "Sim":
+            st.error("🚨 SINAL VERMELHO ATIVADO: ( X ) Sim   (   ) Não — Identificado risco crítico nas Casas 6, 7 ou 8 com nota 1 ou 2.")
+        else:
+            st.success("✅ SINAL VERMELHO DESATIVADO: (   ) Sim   ( X ) Não — Nenhuma restrição severa nas bases emocionais, psicológicas ou éticas.")
 
-        # Tabela de Tarot (Largura exata ajustada para o A4: 180mm útil)
-        pdf.set_font("helvetica", "B", 9)
-        pdf.cell(0, 5, "Tabela Oficial de Avaliação Profissional (Tarot e Observações)", 0, 1)
-        pdf.set_font("helvetica", "B", 8)
-        pdf.set_fill_color(230, 230, 230)
-        pdf.cell(8, 5, "Pos", 1, 0, "C", True)
-        pdf.cell(37, 5, "Competencia", 1, 0, "L", True)
-        pdf.cell(12, 5, "Nota", 1, 0, "C", True)
-        pdf.cell(123, 5, "Arcanos (Central / Neg / Pos)", 1, 1, "L", True)
+        st.markdown("---")
 
-        competencias_nomes = [
-            "Hard Skills",
-            "Soft Skills",
-            "Fit Cultural",
-            "Desafios",
-            "Potencial Futuro",
-            "Equilíbrio Emocional",
-            "Saúde Psicológica",
-            "Confiabilidade e Ética",
-        ]
-        
-        pdf.set_font("helvetica", "", 8)
-        for i in range(1, 9):
-          c_cent = st.session_state.get(f"t_central_{i}", "-")
-          c_neg = st.session_state.get(f"t_negativa_{i}", "-")
-          c_pos = st.session_state.get(f"t_positiva_{i}", "-")
-          nota = st.session_state.get(f"t_pontos_{i}", 3)
-          obs_casa = OBS_MAP.get(i, "")
-          
-          cartas_txt = f"C: {c_cent} | (-) {c_neg} | (+) {c_pos}"
-          
-          pdf.cell(8, 5, str(i), 1, 0, "C")
-          pdf.cell(37, 5, competencias_nomes[i - 1], 1, 0, "L")
-          pdf.cell(12, 5, str(nota), 1, 0, "C")
-          pdf.cell(123, 5, cartas_txt, 1, 1, "L")
-          
-          # Correção aplicadas via multi_cell para evitar corte horizontal de texto
-          pdf.set_font("helvetica", "I", 7)
-          pdf.multi_cell(180, 4, f"Obs: {obs_casa}", "LRB", "L")
-          pdf.set_font("helvetica", "", 8)
+        sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+            "Sumário Executivo e Gráfico",
+            "Tabela e Cruzamento Astrológico",
+            "Histórico e Banco de Dados",
+        ])
 
-        pdf.ln(3)
+        with sub_tab1:
+            st.markdown("### Visão Radar de Competências (8 Casas)")
 
-        # Parecer Final no PDF
-        pdf.set_font("helvetica", "B", 9)
-        pdf.cell(0, 5, "Parecer Final do Avaliador", 0, 1)
-        pdf.set_font("helvetica", "", 8)
-        texto_parecer_limpo = (
-            f"Perfil avaliado para {c_nome}, concorrendo ao cargo de {vaga_cargo} "
-            f"no nível {nivel_hierarquico}. O somatório métrico de {total_pontos} pontos "
-            f"resulta na classificação: {classificacao}. O cruzamento estruturado entre o método "
-            "de tarologia corporativa de 3 cartas e a mandala astrológica real fornece segurança "
-            "institucional plena para o processo de tomada de decisão."
-        )
-        pdf.multi_cell(0, 4, texto_parecer_limpo)
+            categories = [
+                "Hard Skills", "Soft Skills", "Fit Cultural", "Desafios",
+                "Potencial Futuro", "Equilíbrio Emocional", "Saúde Psicológica",
+                "Confiabilidade e Ética",
+            ]
 
-        res_pdf = pdf.output(dest="S")
-        if isinstance(res_pdf, str):
-          return res_pdf.encode("latin1")
-        return bytes(res_pdf)
-
-      st.markdown("### Ações e Exportação de Laudo")
-      col_acao1, col_acao2 = st.columns(2)
-      with col_acao1:
-        pdf_bytes = gerar_pdf_relatorio()
-        st.download_button(
-            label="📄 Baixar Laudo Executivo em PDF",
-            data=pdf_bytes,
-            file_name=f"Laudo_Executivo_{c_nome.replace(' ', '_')}.pdf",
-            mime="application/pdf",
-        )
-      with col_acao2:
-        if st.button("💾 Salvar Avaliação no Banco de Dados (SQLite)"):
-          if c_nome in ["", "Candidato(a)", "Selecionar Candidato Cadastrado..."]:
-            st.error("⚠️ Selecione ou informe um nome de candidato válido antes de salvar a avaliação.")
-          else:
-              sucesso = salvar_no_banco(
-                  c_nome,
-                  vaga_cargo,
-                  nivel_hierarquico,
-                  data_atual,
-                  total_pontos,
-                  classificacao,
-                  sinal_vermelho,
-              )
-              if sucesso:
-                st.success(
-                    "✅ Avaliação salva com sucesso no banco de dados SQLite!"
+            fig = go.Figure()
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=pontuacoes + [pontuacoes[0]],
+                    theta=categories + [categories[0]],
+                    fill="toself",
+                    name="Candidato",
+                    line_color="#00cc96",
+                    fillcolor="rgba(0, 204, 150, 0.25)",
                 )
-              else:
-                st.error(
-                    "⚠️ Falha ao salvar a avaliação."
+            )
+
+            fig.update_layout(
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, 5], dtick=1),
+                    bgcolor="rgba(22, 26, 29, 0.6)",
+                ),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(l=40, r=40, t=30, b=30),
+                height=380,
+                showlegend=False,
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown("### Parecer Final do Avaliador")
+            parecer_texto = (
+                f"Perfil avaliado para **{c_nome}**, concorrendo ao cargo de "
+                f"**{vaga_cargo}** no nível **{nivel_hierarquico}**. O somatório "
+                f"métrico de **{total_pontos} pontos** resulta na classificação "
+                f"*{classificacao}*. O cruzamento estruturado entre o método de "
+                "tarologia corporativa de 3 cartas e a mandala astrológica real "
+                "fornece segurança institucional plena para o processo de tomada de "
+                "decisão."
+            )
+            st.write(parecer_texto)
+
+            def gerar_pdf_relatorio():
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_auto_page_break(auto=True, margin=15)
+                
+                # Cabeçalho
+                pdf.set_font("helvetica", "B", 12)
+                pdf.cell(0, 8, "SISTEMA DE DIAGNOSTICO CORPORATIVO - LAUDO EXECUTIVO", 0, 1, "C")
+                pdf.set_font("helvetica", "", 8)
+                pdf.cell(0, 4, "Recrutamento e Selecao | Metodo Integrado de 8 Casas e Astrologia", 0, 1, "C")
+                pdf.ln(3)
+
+                # Dados do Candidato
+                pdf.set_font("helvetica", "B", 9)
+                pdf.cell(0, 5, f"Candidato(a): {c_nome}", 0, 1)
+                pdf.cell(0, 5, f"Cargo/Vaga: {c_vaga} ({c_nivel})", 0, 1)
+                pdf.cell(0, 5, f"Data da Avaliacao: {data_atual}", 0, 1)
+                pdf.ln(2)
+
+                # Resultados globais
+                pdf.cell(0, 5, f"Pontuacao Total: {total_pontos} / 40", 0, 1)
+                pdf.cell(0, 5, f"Classificacao Final: {classificacao}", 0, 1)
+                pdf.cell(0, 5, f"Sinal Vermelho Ativado: {sinal_vermelho}", 0, 1)
+                pdf.ln(3)
+
+                # Astrologia (Trindade Principal)
+                if big_three_dados:
+                    pdf.set_font("helvetica", "B", 9)
+                    pdf.cell(0, 5, "Trindade Principal (Astrologia)", 0, 1)
+                    pdf.set_font("helvetica", "", 8)
+                    b3_txt = (
+                        f"Solar: {big_three_dados.get('Solar', {}).get('signo', '-')} "
+                        f"({big_three_dados.get('Solar', {}).get('grau', '')}) | "
+                        f"Ascendente: {big_three_dados.get('Ascendente', {}).get('signo', '-')} "
+                        f"({big_three_dados.get('Ascendente', {}).get('grau', '')}) | "
+                        f"Lunar: {big_three_dados.get('Lunar', {}).get('signo', '-')} "
+                        f"({big_three_dados.get('Lunar', {}).get('grau', '')})"
+                    )
+                    pdf.multi_cell(0, 4, b3_txt)
+                    pdf.ln(3)
+
+                # Tabela de Tarot
+                pdf.set_font("helvetica", "B", 9)
+                pdf.cell(0, 5, "Tabela Oficial de Avaliação Profissional (Tarot e Observações)", 0, 1)
+                pdf.set_font("helvetica", "B", 8)
+                pdf.set_fill_color(230, 230, 230)
+                pdf.cell(8, 5, "Pos", 1, 0, "C", True)
+                pdf.cell(37, 5, "Competencia", 1, 0, "L", True)
+                pdf.cell(12, 5, "Nota", 1, 0, "C", True)
+                pdf.cell(123, 5, "Arcanos (Central / Neg / Pos)", 1, 1, "L", True)
+
+                competencias_nomes = [
+                    "Hard Skills", "Soft Skills", "Fit Cultural", "Desafios",
+                    "Potencial Futuro", "Equilíbrio Emocional", "Saúde Psicológica",
+                    "Confiabilidade e Ética",
+                ]
+                
+                pdf.set_font("helvetica", "", 8)
+                for i in range(1, 9):
+                    c_cent = st.session_state.get(f"t_central_{i}", "-")
+                    c_neg = st.session_state.get(f"t_negativa_{i}", "-")
+                    c_pos = st.session_state.get(f"t_positiva_{i}", "-")
+                    nota = st.session_state.get(f"t_pontos_{i}", 3)
+                    obs_casa = OBS_MAP.get(i, "")
+                    
+                    cartas_txt = f"C: {c_cent} | (-) {c_neg} | (+) {c_pos}"
+                    
+                    pdf.cell(8, 5, str(i), 1, 0, "C")
+                    pdf.cell(37, 5, competencias_nomes[i - 1], 1, 0, "L")
+                    pdf.cell(12, 5, str(nota), 1, 0, "C")
+                    pdf.cell(123, 5, cartas_txt, 1, 1, "L")
+                    
+                    pdf.set_font("helvetica", "I", 7)
+                    pdf.multi_cell(180, 4, f"Obs: {obs_casa}", "LRB", "L")
+                    pdf.set_font("helvetica", "", 8)
+
+                pdf.ln(3)
+
+                # Parecer Final no PDF
+                pdf.set_font("helvetica", "B", 9)
+                pdf.cell(0, 5, "Parecer Final do Avaliador", 0, 1)
+                pdf.set_font("helvetica", "", 8)
+                texto_parecer_limpo = (
+                    f"Perfil avaliado para {c_nome}, concorrendo ao cargo de {vaga_cargo} "
+                    f"no nível {nivel_hierarquico}. O somatório métrico de {total_pontos} pontos "
+                    f"resulta na classificação: {classificacao}. O cruzamento estruturado entre o método "
+                    "de tarologia corporativa de 3 cartas e a mandala astrológica real fornece segurança "
+                    "institucional plena para o processo de tomada de decisão."
+                )
+                pdf.multi_cell(0, 4, texto_parecer_limpo)
+
+                res_pdf = pdf.output(dest="S")
+                if isinstance(res_pdf, str):
+                    return res_pdf.encode("latin1")
+                return bytes(res_pdf)
+
+            st.markdown("### Ações e Exportação de Laudo")
+            col_acao1, col_acao2 = st.columns(2)
+            with col_acao1:
+                pdf_bytes = gerar_pdf_relatorio()
+                st.download_button(
+                    label="📄 Baixar Laudo Executivo em PDF",
+                    data=pdf_bytes,
+                    file_name=f"Laudo_Executivo_{c_nome.replace(' ', '_')}.pdf",
+                    mime="application/pdf",
+                )
+            with col_acao2:
+                if st.button("💾 Salvar Avaliação no Banco de Dados (SQLite)"):
+                    if c_nome in ["", "Candidato(a)", "Selecionar Candidato Cadastrado..."]:
+                        st.error("⚠️ Selecione ou informe um nome de candidato válido antes de salvar a avaliação.")
+                    else:
+                        sucesso = salvar_no_banco(
+                            c_nome, vaga_cargo, nivel_hierarquico, data_atual,
+                            total_pontos, classificacao, sinal_vermelho,
+                        )
+                        if sucesso:
+                            st.success("✅ Avaliação salva com sucesso no banco de dados SQLite!")
+                        else:
+                            st.error("⚠️ Falha ao salvar a avaliação.")
+
+        with sub_tab2:
+            st.markdown("### Tabela Oficial de Avaliação Profissional")
+            competencias_nomes = [
+                "Hard Skills", "Soft Skills", "Fit Cultural", "Desafios",
+                "Potencial Futuro", "Equilíbrio Emocional", "Saúde Psicológica",
+                "Confiabilidade e Ética",
+            ]
+
+            tabela_dados = []
+            for i in range(1, 9):
+                c_cent = st.session_state.get(f"t_central_{i}", "-")
+                c_neg = st.session_state.get(f"t_negativa_{i}", "-")
+                c_pos = st.session_state.get(f"t_positiva_{i}", "-")
+                nota = st.session_state.get(f"t_pontos_{i}", 3)
+                cartas_formatadas = f"Central: {c_cent} | (-) Neg: {c_neg} | (+) Pos: {c_pos}"
+                tabela_dados.append({
+                    "Posição": i,
+                    "Competência": competencias_nomes[i - 1],
+                    "Cartas (Central / Neg / Pos)": cartas_formatadas,
+                    "Pontuação": nota,
+                    "Observação": OBS_MAP.get(i, ""),
+                })
+
+            df_ficha = pd.DataFrame(tabela_dados)
+            st.dataframe(df_ficha, use_container_width=True, hide_index=True)
+
+            st.markdown("### Cruzamento Analítico com Efemérides Astrológicas")
+            mapeamento_cruzado = [
+                (1, "Hard Skills & Rotina", 6, "Casa 6 Astrológica (Trabalho)"),
+                (2, "Soft Skills & Comunicação", 3, "Casa 3 Astrológica (Comunicação)"),
+                (3, "Fit Cultural & Coletivo", 11, "Casa 11 Astrológica (Grupos)"),
+                (4, "Desafios & Autossabotagem", 12, "Casa 12 Astrológica (Inconsciente)"),
+                (5, "Potencial de Liderança", 10, "Casa 10 Astrológica (Carreira)"),
+                (6, "Equilíbrio Emocional", 4, "Casa 4 Astrológica (Base Emocional)"),
+                (7, "Saúde Psicológica & Foco", 1, "Casa 1 Astrológica (Self)"),
+                (8, "Confiabilidade & Ética", 8, "Casa 8 Astrológica (Compliance)"),
+            ]
+
+            for t_num, t_nome, a_num, a_desc in mapeamento_cruzado:
+                signo_astro = "Não calculado"
+                if f"Casa {a_num}" in mandala_dados:
+                    signo_astro = f"{mandala_dados[f'Casa {a_num}']['signo']} ({mandala_dados[f'Casa {a_num}']['grau']})"
+                nota_casa = st.session_state.get(f"t_pontos_{t_num}", 3)
+                st.write(f"- **Casa {t_num} ({t_nome}) [Nota {nota_casa}/5]:** Alinhada à **{a_desc}** — Signo Cúspide: **{signo_astro}**.")
+
+        with sub_tab3:
+            st.markdown("### Histórico de Candidatos Avaliados (Pipeline Local)")
+            with sqlite3.connect("rh_diagnostico.db") as conn_db:
+                df_historico = pd.read_sql_query(
+                    "SELECT id, nome, vaga, nivel, data, pontos, classificacao, sinal_vermelho FROM avaliacoes",
+                    conn_db,
                 )
 
-    with sub_tab2:
-      st.markdown("### Tabela Oficial de Avaliação Profissional")
-      competencias_nomes = [
-          "Hard Skills",
-          "Soft Skills",
-          "Fit Cultural",
-          "Desafios",
-          "Potencial Futuro",
-          "Equilíbrio Emocional",
-          "Saúde Psicológica",
-          "Confiabilidade e Ética",
-      ]
-
-      tabela_dados = []
-      for i in range(1, 9):
-        c_cent = st.session_state.get(f"t_central_{i}", "-")
-        c_neg = st.session_state.get(f"t_negativa_{i}", "-")
-        c_pos = st.session_state.get(f"t_positiva_{i}", "-")
-        nota = st.session_state.get(f"t_pontos_{i}", 3)
-        cartas_formatadas = (
-            f"Central: {c_cent} | (-) Neg: {c_neg} | (+) Pos: {c_pos}"
-        )
-        tabela_dados.append({
-            "Posição": i,
-            "Competência": competencias_nomes[i - 1],
-            "Cartas (Central / Neg / Pos)": cartas_formatadas,
-            "Pontuação": nota,
-            "Observação": OBS_MAP.get(i, ""),
-        })
-
-      df_ficha = pd.DataFrame(tabela_dados)
-      st.dataframe(df_ficha, use_container_width=True, hide_index=True)
-
-      st.markdown("### Cruzamento Analítico com Efemérides Astrológicas")
-      mapeamento_cruzado = [
-          (1, "Hard Skills & Rotina", 6, "Casa 6 Astrológica (Trabalho)"),
-          (2, "Soft Skills & Comunicação", 3, "Casa 3 Astrológica (Comunicação)"),
-          (3, "Fit Cultural & Coletivo", 11, "Casa 11 Astrológica (Grupos)"),
-          (
-              4,
-              "Desafios & Autossabotagem",
-              12,
-              "Casa 12 Astrológica (Inconsciente)",
-          ),
-          (5, "Potencial de Liderança", 10, "Casa 10 Astrológica (Carreira)"),
-          (6, "Equilíbrio Emocional", 4, "Casa 4 Astrológica (Base Emocional)"),
-          (7, "Saúde Psicológica & Foco", 1, "Casa 1 Astrológica (Self)"),
-          (8, "Confiabilidade & Ética", 8, "Casa 8 Astrológica (Compliance)"),
-      ]
-
-      for t_num, t_nome, a_num, a_desc in mapeamento_cruzado:
-        signo_astro = "Não calculado"
-        if f"Casa {a_num}" in mandala_dados:
-          signo_astro = (
-              f"{mandala_dados[f'Casa {a_num}']['signo']}"
-              f" ({mandala_dados[f'Casa {a_num}']['grau']})"
-          )
-        nota_casa = st.session_state.get(f"t_pontos_{t_num}", 3)
-        st.write(
-            f"- **Casa {t_num} ({t_nome}) [Nota {nota_casa}/5]:** Alinhada à"
-            f" **{a_desc}** — Signo Cúspide: **{signo_astro}**."
-        )
-
-    with sub_tab3:
-      st.markdown("### Histórico de Candidatos Avaliados (Pipeline Local)")
-      with sqlite3.connect("rh_diagnostico.db") as conn_db:
-        df_historico = pd.read_sql_query(
-            "SELECT id, nome, vaga, nivel, data, pontos, classificacao,"
-            " sinal_vermelho FROM avaliacoes",
-            conn_db,
-        )
-
-      if not df_historico.empty:
-        st.dataframe(df_historico, use_container_width=True, hide_index=True)
-      else:
-        st.info(
-            "Nenhum registro encontrado no banco de dados. Clique em 'Salvar"
-            " Avaliação' para registrar o primeiro candidato."
-        )
+            if not df_historico.empty:
+                st.dataframe(df_historico, use_container_width=True, hide_index=True)
+            else:
+                st.info("Nenhum registro encontrado no banco de dados. Clique em 'Salvar Avaliação' para registrar o primeiro candidato.")
