@@ -29,6 +29,39 @@ TRADUCAO_SIGNOS = {
     "Pis": "Peixes", "Pisces": "Peixes",
 }
 
+ELEMENTOS_SIGNOS = {
+    "Áries": "Fogo", "Leão": "Fogo", "Sagitário": "Fogo",
+    "Touro": "Terra", "Virgem": "Terra", "Capricórnio": "Terra",
+    "Gêmeos": "Ar", "Libra": "Ar", "Aquário": "Ar",
+    "Câncer": "Água", "Escorpião": "Água", "Peixes": "Água"
+}
+
+PREFERENCIA_ELEMENTO_CASA = {
+    1: ["Fogo", "Terra"],
+    2: ["Terra"],
+    3: ["Ar"],
+    4: ["Água"],
+    5: ["Fogo"],
+    6: ["Terra"],
+    7: ["Ar"],
+    8: ["Água", "Terra"],
+    9: ["Fogo", "Ar"],
+    10: ["Terra", "Fogo"],
+    11: ["Ar", "Fogo"],
+    12: ["Água"]
+}
+
+def calcular_nota_astrologica_casa(casa_num, signo_nome):
+    elemento_signo = ELEMENTOS_SIGNOS.get(signo_nome, "Terra")
+    prefs = PREFERENCIA_ELEMENTO_CASA.get(casa_num, ["Terra"])
+    if elemento_signo in prefs:
+        return 5
+    elif elemento_signo in ["Fogo", "Air"] and any(p in ["Fogo", "Ar"] for p in prefs):
+        return 4
+    elif elemento_signo in ["Terra", "Água"] and any(p in ["Terra", "Água"] for p in prefs):
+        return 4
+    return 3
+
 ATIVADORES_NOTA_5 = {
     1: ["O Mago", "Rei de Ouros", "Rainha de Espadas"],
     2: ["A Imperatriz", "Rei de Paus", "Rainha de Copas"],
@@ -190,7 +223,7 @@ DECK_TAROT = [
 with tab1:
     col_topo_t1, col_topo_t2 = st.columns([4, 1])
     with col_topo_t1:
-        st.header("Parâmetros do Candidato e Método de Tiragem (3 Cartas)")
+        st.header("Fase 1: Parâmetros do Candidato e Método de Tiragem (Tarot)")
     with col_topo_t2:
         st.button(
             "🔄 Nova Avaliação",
@@ -306,6 +339,14 @@ with tab1:
                 st.text_input("Carta Positiva (Pontos Fortes)", key=f"t_positiva_{num}", placeholder="Ex: 4 de Copas")
                 st.number_input("Nota (1-5)", min_value=1, max_value=5, value=3, key=f"t_pontos_{num}")
 
+    # Exibição do Resultado Individual da Fase 1
+    pontuacoes_t1 = [st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)]
+    total_t1 = sum(pontuacoes_t1)
+    perc_t1 = (total_t1 / 40.0) * 100
+
+    st.markdown("---")
+    st.info(f"📊 **Resultado Individual da Fase 1 (Tarot):** {total_t1} / 40 pontos ({perc_t1:.1f}% de aderência comportamental)")
+
     st.markdown("")
     with st.expander("📂 Consulta Opcional de Histórico de Candidatos"):
         with sqlite3.connect("rh_diagnostico.db") as conn_hist:
@@ -319,8 +360,8 @@ with tab1:
             st.info("Nenhum histórico gravado no banco de dados.")
 
 with tab2:
-    st.header("Motor Astrológico e Mandala de 12 Casas (Kerykeion Real)")
-    st.markdown("Insira as coordenadas e dados de nascimento para calcular as posições reais de efemérides via Kerykeion.")
+    st.header("Fase 2: Motor Astrológico e Mandala de 12 Casas (Kerykeion Real)")
+    st.markdown("Insira as coordenadas e dados de nascimento para calcular as posições reais de efemérides via Kerykeion e pontuação automática.")
 
     if not KERYKEION_DISPONIVEL:
         st.warning("⚠️ A biblioteca **kerykeion** ainda não foi detectada. Certifique-se de executar `pip install kerykeion`.")
@@ -413,12 +454,14 @@ with tab2:
                     else:
                         signo, pos = "Desconhecido", 0.0
 
+                    nota_casa_astro = calcular_nota_astrologica_casa(i, signo)
                     grau_int = int(pos % 30)
                     min_int = int((pos % 1) * 60)
                     casas_res[f"Casa {i}"] = {
                         "signo": signo,
                         "grau": f"{grau_int}° {min_int}'",
-                        "analise": f"Posicionamento real calculado no signo de {signo} a {pos:.2f}° na eclíptica (Sistema de Casas {sistema_casas} | Local: {loc}).",
+                        "nota": nota_casa_astro,
+                        "analise": f"Posicionamento real calculado no signo de {signo} a {pos:.2f}° (Nota de afinidade: {nota_casa_astro}/5).",
                     }
                 return casas_res, big_three
             except Exception as e:
@@ -436,10 +479,13 @@ with tab2:
         for c in range(1, 13):
             s_idx = (seed + c * 7) % 12
             g = (seed * c * 3) % 30
+            sig = signos[s_idx]
+            nota_casa_astro = calcular_nota_astrologica_casa(c, sig)
             casas_res[f"Casa {c}"] = {
-                "signo": signos[s_idx],
+                "signo": sig,
                 "grau": f"{g}°",
-                "analise": f"Posicionamento parametrizado para {loc}.",
+                "nota": nota_casa_astro,
+                "analise": f"Posicionamento parametrizado para {loc} (Nota de afinidade: {nota_casa_astro}/5).",
             }
         return casas_res, big_three
 
@@ -488,6 +534,13 @@ with tab2:
 
         st.markdown("### Resultado da Mandala das 12 Casas (Kerykeion Real)")
         mandala_items = list(st.session_state["mandala_calculada"].items())
+        
+        # Exibição do Resultado Individual da Fase 2
+        total_t2 = sum([v.get("nota", 3) for k, v in mandala_items])
+        perc_t2 = (total_t2 / 60.0) * 100
+        st.info(f"🌟 **Resultado Individual da Fase 2 (Astrologia):** {total_t2} / 60 pontos ({perc_t2:.1f}% de potencial estrutural celeste)")
+        st.markdown("")
+
         for idx_linha in range(0, len(mandala_items), 3):
             cols_grid = st.columns(3)
             for col_idx in range(3):
@@ -497,7 +550,7 @@ with tab2:
                         st.markdown(
                             f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 12px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;">
 <div>
-<div style="font-size: 12px; color: #00cc96; font-weight: 700; text-transform: uppercase;">{k}</div>
+<div style="font-size: 12px; color: #00cc96; font-weight: 700; text-transform: uppercase;">{k} (Nota: {v.get('nota', 3)}/5)</div>
 <div style="font-size: 17px; color: #ffffff; font-weight: 700; margin-top: 4px;">{v['signo']} <span style="font-size: 12px; color: #a0aec0; font-weight: normal;">({v['grau']})</span></div>
 </div>
 <div style="font-size: 11px; color: #cbd5e0; margin-top: 8px; border-top: 1px solid #2d3748; padding-top: 6px; line-height: 1.3;">{v['analise']}</div>
@@ -508,15 +561,27 @@ with tab2:
         st.info("Nenhuma mandala calculada na sessão atual. Preencha os dados e clique em 'Processar Mandala Astrológica Real'.")
 
 with tab3:
-    st.header("FICHA DE AVALIAÇÃO PARA RECRUTAMENTO E CRUZAMENTO ANALÍTICO")
-    st.markdown("Documento oficial de governança integrando a Ficha de Avaliação Profissional em Tabela, o cruzamento de arcanos e as efemérides astrológicas.")
+    st.header("Fase 3: FICHA DE AVALIAÇÃO E INTEGRAÇÃO ANALÍTICA")
+    st.markdown("Documento oficial de governança integrando a Fase 1 (Tarot), a Fase 2 (Astrologia) e o Índice Global de Aderência.")
 
-    if st.button("Gerar Ficha de Avaliação e Súmula Executiva"):
+    if st.button("Gerar Ficha de Avaliação e Súmula Executiva Integrada"):
         st.session_state["ficha_gerada"] = True
 
     if st.session_state.get("ficha_gerada", False):
-        pontuacoes = [st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)]
-        total_pontos = sum(pontuacoes)
+        pontuacoes_t1 = [st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)]
+        total_t1 = sum(pontuacoes_t1)
+        perc_t1 = (total_t1 / 40.0) * 100
+
+        mandala_dados = st.session_state.get("mandala_calculada", {})
+        if mandala_dados:
+            total_t2 = sum([v.get("nota", 3) for k, v in mandala_dados.items()])
+            perc_t2 = (total_t2 / 60.0) * 100
+        else:
+            total_t2 = 36
+            perc_t2 = 60.0
+
+        # Média Ponderada Integrada (Fase 3): 70% Tarot + 30% Astrologia
+        indice_global = (perc_t1 * 0.7) + (perc_t2 * 0.3)
 
         p6 = st.session_state.get("t_pontos_6", 3)
         p7 = st.session_state.get("t_pontos_7", 3)
@@ -524,22 +589,21 @@ with tab3:
 
         sinal_vermelho = "Sim" if (p6 <= 2 or p7 <= 2 or p8 <= 2) else "Não"
 
-        if total_pontos >= 32:
-            classificacao = "Altamente Recomendado (32 a 40 pontos: Alinhamento excelente)"
-        elif total_pontos >= 24:
-            classificacao = "Recomendado com Ressalvas (24 a 31 pontos: Exige desenvolvimento)"
+        if indice_global >= 80:
+            classificacao = "Altamente Recomendado (Aderência Superior a 80%)"
+        elif indice_global >= 60:
+            classificacao = "Recomendado com Ressalvas (Aderência entre 60% e 79%)"
         else:
-            classificacao = "Não Recomendado (Abaixo de 24 pontos: Riscos severos)"
+            classificacao = "Não Recomendado (Abaixo de 60%: Riscos severos)"
 
         c_nome = st.session_state.get("input_nome_cand", "Candidato(a)")
         c_vaga = st.session_state.get("input_vaga_cand", "Cargo")
         c_nivel = st.session_state.get("input_nivel_cand", "Nível")
-        mandala_dados = st.session_state.get("mandala_calculada", {})
         big_three_dados = st.session_state.get("big_three_calculado", {})
         data_atual = datetime.now().strftime("%d / %m / %Y")
 
         st.markdown("---")
-        st.markdown("### 📋 FICHA DE AVALIAÇÃO PARA RECRUTAMENTO")
+        st.markdown("### 📋 FICHA DE AVALIAÇÃO INTEGRADA")
         col_f1, col_f2, col_f3 = st.columns([3, 2, 2])
         with col_f1:
             st.markdown(f"**CANDIDATO(A):** {c_nome}")
@@ -550,37 +614,39 @@ with tab3:
 
         st.markdown("---")
 
-        if "(" in classificacao:
-            partes = classificacao.split("(", 1)
-            status_titulo = partes[0].strip()
-            status_detalhe = "(" + partes[1].strip()
-        else:
-            status_titulo = classificacao
-            status_detalhe = ""
-
-        col_res1, col_res2 = st.columns([1, 2])
+        col_res1, col_res2, col_res3 = st.columns(3)
         with col_res1:
             st.markdown(
-                f"""<div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Pontuação Total</span>
-<div style="font-size: 24px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_pontos} <span style="font-size: 14px; color: #718096; font-weight: normal;">/ 40</span></div>
+                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 1 (Tarot)</span>
+<div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_t1} / 40 <span style="font-size: 13px; color: #00cc96;">({perc_t1:.1f}%)</span></div>
 </div>""",
                 unsafe_allow_html=True,
             )
         with col_res2:
             st.markdown(
-                f"""<div style="background-color: #161a1d; padding: 16px 20px; border-radius: 8px; border: 1px solid #2d3748; min-height: 85px; display: flex; flex-direction: column; justify-content: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Classificação Final</span>
-<div style="font-size: 15px; color: #ffffff; font-weight: 600; margin-top: 3px; line-height: 1.3;">{status_titulo} <span style="font-size: 13px; color: #cbd5e0; font-weight: normal; display: block; margin-top: 2px;">{status_detalhe}</span></div>
+                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 2 (Astrologia)</span>
+<div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_t2} / 60 <span style="font-size: 13px; color: #00cc96;">({perc_t2:.1f}%)</span></div>
+</div>""",
+                unsafe_allow_html=True,
+            )
+        with col_res3:
+            st.markdown(
+                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
+<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 3 (Índice Global)</span>
+<div style="font-size: 20px; color: #00cc96; font-weight: 700; margin-top: 4px;">{indice_global:.1f}%</div>
 </div>""",
                 unsafe_allow_html=True,
             )
 
         st.markdown("")
+        st.markdown(f"**Classificação Final:** {classificacao}")
+
         if sinal_vermelho == "Sim":
-            st.error("🚨 SINAL VERMELHO ATIVADO: ( X ) Sim   (   ) Não — Identificado risco crítico nas Casas 6, 7 ou 8 com nota 1 ou 2.")
+            st.error("🚨 SINAL VERMELHO ATIVADO: Identificado risco crítico nas Casas 6, 7 ou 8 com nota 1 ou 2.")
         else:
-            st.success("✅ SINAL VERMELHO DESATIVADO: (   ) Sim   ( X ) Não — Nenhuma restrição severa nas bases emocionais, psicológicas ou éticas.")
+            st.success("✅ SINAL VERMELHO DESATIVADO: Nenhuma restrição severa nas bases emocionais, psicológicas ou éticas.")
 
         st.markdown("---")
 
@@ -602,7 +668,7 @@ with tab3:
             fig = go.Figure()
             fig.add_trace(
                 go.Scatterpolar(
-                    r=pontuacoes + [pontuacoes[0]],
+                    r=pontuacoes_t1 + [pontuacoes_t1[0]],
                     theta=categories + [categories[0]],
                     fill="toself",
                     name="Candidato",
@@ -628,12 +694,10 @@ with tab3:
             st.markdown("### Parecer Final do Avaliador")
             parecer_texto = (
                 f"Perfil avaliado para **{c_nome}**, concorrendo ao cargo de "
-                f"**{vaga_cargo}** no nível **{nivel_hierarquico}**. O somatório "
-                f"métrico de **{total_pontos} pontos** resulta na classificação "
-                f"*{classificacao}*. O cruzamento estruturado entre o método de "
-                "tarologia corporativa de 3 cartas e a mandala astrológica real "
-                "fornece segurança institucional plena para o processo de tomada de "
-                "decisão."
+                f"**{vaga_cargo}** no nível **{nivel_hierarquico}**. Os resultados "
+                f"independentes apontam **{perc_t1:.1f}%** na Fase 1 (Tarot) e "
+                f"**{perc_t2:.1f}%** na Fase 2 (Astrologia), resultando em um "
+                f"**Índice Global de Aderência de {indice_global:.1f}%** (*{classificacao}*)."
             )
             st.write(parecer_texto)
 
@@ -646,7 +710,7 @@ with tab3:
                 pdf.set_font("helvetica", "B", 12)
                 pdf.cell(0, 8, "SISTEMA DE DIAGNOSTICO CORPORATIVO - LAUDO EXECUTIVO", 0, 1, "C")
                 pdf.set_font("helvetica", "", 8)
-                pdf.cell(0, 4, "Recrutamento e Selecao | Metodo Integrado de 8 Casas e Astrologia", 0, 1, "C")
+                pdf.cell(0, 4, "Recrutamento e Selecao | Metodo Integrado de 3 Fases", 0, 1, "C")
                 pdf.ln(3)
 
                 # Dados do Candidato
@@ -656,31 +720,16 @@ with tab3:
                 pdf.cell(0, 5, f"Data da Avaliacao: {data_atual}", 0, 1)
                 pdf.ln(2)
 
-                # Resultados globais
-                pdf.cell(0, 5, f"Pontuacao Total: {total_pontos} / 40", 0, 1)
-                pdf.cell(0, 5, f"Classificacao Final: {classificacao}", 0, 1)
+                # Resultados globais por fase
+                pdf.cell(0, 5, f"Fase 1 (Tarot): {total_t1} / 40 ({perc_t1:.1f}%)", 0, 1)
+                pdf.cell(0, 5, f"Fase 2 (Astrologia): {total_t2} / 60 ({perc_t2:.1f}%)", 0, 1)
+                pdf.cell(0, 5, f"Fase 3 (Indice Global Integrado): {indice_global:.1f}% | {classificacao}", 0, 1)
                 pdf.cell(0, 5, f"Sinal Vermelho Ativado: {sinal_vermelho}", 0, 1)
                 pdf.ln(3)
 
-                # Astrologia (Trindade Principal)
-                if big_three_dados:
-                    pdf.set_font("helvetica", "B", 9)
-                    pdf.cell(0, 5, "Trindade Principal (Astrologia)", 0, 1)
-                    pdf.set_font("helvetica", "", 8)
-                    b3_txt = (
-                        f"Solar: {big_three_dados.get('Solar', {}).get('signo', '-')} "
-                        f"({big_three_dados.get('Solar', {}).get('grau', '')}) | "
-                        f"Ascendente: {big_three_dados.get('Ascendente', {}).get('signo', '-')} "
-                        f"({big_three_dados.get('Ascendente', {}).get('grau', '')}) | "
-                        f"Lunar: {big_three_dados.get('Lunar', {}).get('signo', '-')} "
-                        f"({big_three_dados.get('Lunar', {}).get('grau', '')})"
-                    )
-                    pdf.multi_cell(0, 4, b3_txt)
-                    pdf.ln(3)
-
                 # Tabela de Tarot
                 pdf.set_font("helvetica", "B", 9)
-                pdf.cell(0, 5, "Tabela Oficial de Avaliação Profissional (Tarot e Observações)", 0, 1)
+                pdf.cell(0, 5, "Tabela Oficial de Avaliação Profissional (Tarot)", 0, 1)
                 pdf.set_font("helvetica", "B", 8)
                 pdf.set_fill_color(230, 230, 230)
                 pdf.cell(8, 5, "Pos", 1, 0, "C", True)
@@ -714,20 +763,6 @@ with tab3:
                     pdf.set_font("helvetica", "", 8)
 
                 pdf.ln(3)
-
-                # Parecer Final no PDF
-                pdf.set_font("helvetica", "B", 9)
-                pdf.cell(0, 5, "Parecer Final do Avaliador", 0, 1)
-                pdf.set_font("helvetica", "", 8)
-                texto_parecer_limpo = (
-                    f"Perfil avaliado para {c_nome}, concorrendo ao cargo de {vaga_cargo} "
-                    f"no nível {nivel_hierarquico}. O somatório métrico de {total_pontos} pontos "
-                    f"resulta na classificação: {classificacao}. O cruzamento estruturado entre o método "
-                    "de tarologia corporativa de 3 cartas e a mandala astrológica real fornece segurança "
-                    "institucional plena para o processo de tomada de decisão."
-                )
-                pdf.multi_cell(0, 4, texto_parecer_limpo)
-
                 res_pdf = pdf.output(dest="S")
                 if isinstance(res_pdf, str):
                     return res_pdf.encode("latin1")
@@ -750,7 +785,7 @@ with tab3:
                     else:
                         sucesso = salvar_no_banco(
                             c_nome, vaga_cargo, nivel_hierarquico, data_atual,
-                            total_pontos, classificacao, sinal_vermelho,
+                            int(indice_global), classificacao, sinal_vermelho,
                         )
                         if sucesso:
                             st.success("✅ Avaliação salva com sucesso no banco de dados SQLite!")
