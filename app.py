@@ -56,11 +56,7 @@ def calcular_nota_astrologica_casa(casa_num, signo_nome):
     prefs = PREFERENCIA_ELEMENTO_CASA.get(casa_num, ["Terra"])
     if elemento_signo in prefs:
         return 5
-    elif elemento_signo in ["Fogo", "Ar"] and any(p in ["Fogo", "Ar"] for p in prefs):
-        return 4
-    elif elemento_signo in ["Terra", "Água"] and any(p in ["Terra", "Água"] for p in prefs):
-        return 4
-    return 3
+    return 4
 
 ATIVADORES_NOTA_5 = {
     1: ["O Mago", "Rei de Ouros", "Rainha de Espadas"],
@@ -87,19 +83,19 @@ ALERTAS_IMATURIDADE = {
 }
 
 OBS_MAP = {
-    1: "Possui potencial, mas a competência técnica pode estar passando por fase de reorganização ou adaptação, exigindo direcionamento.",
-    2: "Apresenta boa capacidade de trabalho em equipe e adaptação, desde que mantenha limites profissionais claros.",
-    3: "Boa compatibilidade com ambiente baseado em troca e colaboração, prezando pela reciprocidade.",
-    4: "Riscos administráveis. Atenção em transformar planejamento em decisão e manter estabilidade emocional.",
-    5: "Forte potencial de crescimento e autonomia quando há espaço para exercer criatividade e aperfeiçoar habilidades.",
-    6: "Possui recursos emocionais, mas pode ser impactada por situações de desgaste ou frustração em resultados.",
-    7: "Boa estrutura mental e racionalização, evitando que experiências frustrantes ocupem espaço excessivo.",
-    8: "Capacidade de concluir os processos de maneira ética, gerindo bem as responsabilidades assumidas.",
+    1: "Apresenta padrão esperado para condução das rotinas e competências técnicas atribuídas.",
+    2: "Boa capacidade de comunicação e integração colaborativa com o time.",
+    3: "Alinhamento adequado aos valores e princípios coletivos da organização.",
+    4: "Gerenciamento funcional dos pontos cegos e riscos operacionais.",
+    5: "Projeção consistente de autonomia e entregas de médio e longo prazo.",
+    6: "Estabilidade emocional adequada para absorção das demandas sob pressão.",
+    7: "Foco cognitivo preservado e boa resiliência frente a cenários de exaustão.",
+    8: "Comprometimento ético satisfatório e respeito aos acordos firmados.",
 }
 
 
 def calcular_nota_metodologica(casa_num, c_cent, c_neg, c_pos):
-    nota_base = 3
+    nota_base = 3  # Padrão de mercado / neutro equilibrado
     cent_limpo = str(c_cent).strip().lower() if c_cent else ""
     neg_limpo = str(c_neg).strip().lower() if c_neg else ""
     pos_limpo = str(c_pos).strip().lower() if c_pos else ""
@@ -184,7 +180,7 @@ def disparar_nova_avaliacao():
         st.session_state[f"t_central_{i}"] = ""
         st.session_state[f"t_negativa_{i}"] = ""
         st.session_state[f"t_positiva_{i}"] = ""
-        st.session_state[f"t_pontos_{i}"] = 3
+        st.session_state[f"t_pontos_{i}"] = 3  # Reinicializa com a base neutra calibrada 3
     st.rerun()
 
 
@@ -308,7 +304,7 @@ with tab1:
                 pontos_sugeridos = calcular_nota_metodologica(i, c_cent, c_neg, c_pos)
                 st.session_state[f"t_pontos_{i}"] = pontos_sugeridos
 
-            st.success("Sorteio e atribuição de notas baseados estritamente nas diretrizes metodológicas concluídos com sucesso!")
+            st.success("Sorteio e atribuição de notas baseados nas diretrizes metodológicas equilibradas concluídos com sucesso!")
             st.rerun()
 
     st.markdown("---")
@@ -393,7 +389,7 @@ with tab2:
             st.error("❌ Data inválida (ex: dia ou mês inexistente).")
             return None, None
 
-        geolocator = Nominatim(user_agent="rh_astrology_real_v15")
+        geolocator = Nominatim(user_agent="rh_astrology_real_v17")
         lat, lon = None, None
         try:
             loc_obj = geolocator.geocode(loc)
@@ -509,7 +505,7 @@ with tab2:
         st.markdown("### Resultado da Mandala das 12 Casas (Kerykeion Real)")
         mandala_items = list(st.session_state["mandala_calculada"].items())
         
-        total_t2 = sum([v.get("nota", 3) for k, v in mandala_items])
+        total_t2 = sum([v.get("nota", 4) for k, v in mandala_items])
         perc_t2 = (total_t2 / 60.0) * 100
         st.info(f"🌟 **Resultado Individual da Fase 2 (Astrologia):** {total_t2} / 60 pontos ({perc_t2:.1f}% de potencial estrutural celeste)")
         st.markdown("")
@@ -521,7 +517,7 @@ with tab2:
                     k, v = mandala_items[idx_linha + col_idx]
                     with cols_grid[col_idx]:
                         with st.container(border=True):
-                            st.markdown(f"**{k}** *(Nota: {v.get('nota', 3)}/5)*")
+                            st.markdown(f"**{k}** *(Nota: {v.get('nota', 4)}/5)*")
                             st.markdown(f"### {v['signo']} `({v['grau']})`")
                             st.caption(v['analise'])
     else:
@@ -541,11 +537,11 @@ with tab3:
 
         mandala_dados = st.session_state.get("mandala_calculada", {})
         if mandala_dados:
-            total_t2 = sum([v.get("nota", 3) for k, v in mandala_dados.items()])
+            total_t2 = sum([v.get("nota", 4) for k, v in mandala_dados.items()])
             perc_t2 = (total_t2 / 60.0) * 100
         else:
-            total_t2 = 36
-            perc_t2 = 60.0
+            total_t2 = 48
+            perc_t2 = 80.0
 
         indice_global = (perc_t1 * 0.7) + (perc_t2 * 0.3)
 
@@ -557,10 +553,10 @@ with tab3:
 
         if indice_global >= 80:
             classificacao = "Altamente Recomendado (Aderência Superior a 80%)"
-        elif indice_global >= 60:
-            classificacao = "Recomendado com Ressalvas (Aderência entre 60% e 79%)"
+        elif indice_global >= 65:
+            classificacao = "Recomendado com Ressalvas (Aderência entre 65% e 79%)"
         else:
-            classificacao = "Não Recomendado (Abaixo de 60%: Riscos severos)"
+            classificacao = "Não Recomendado (Abaixo de 65%: Riscos severos)"
 
         c_nome = st.session_state.get("input_nome_cand", "Candidato(a)")
         c_vaga = st.session_state.get("input_vaga_cand", "Cargo")
