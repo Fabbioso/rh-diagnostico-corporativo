@@ -168,7 +168,7 @@ if "astro_hora" not in st.session_state:
 if "input_nome_cand" not in st.session_state:
     st.session_state["input_nome_cand"] = ""
 
-if st.session_state.get("reset_trigger", False):
+def disparar_nova_avaliacao():
     st.session_state["input_nome_cand"] = ""
     st.session_state["input_vaga_cand"] = ""
     st.session_state["input_nivel_cand"] = "C-Level / Executivo"
@@ -185,11 +185,7 @@ if st.session_state.get("reset_trigger", False):
         st.session_state[f"t_negativa_{i}"] = ""
         st.session_state[f"t_positiva_{i}"] = ""
         st.session_state[f"t_pontos_{i}"] = 3
-    st.session_state["reset_trigger"] = False
-
-
-def disparar_nova_avaliacao():
-    st.session_state["reset_trigger"] = True
+    st.rerun()
 
 
 st.title("Sistema de Diagnóstico Corporativo: Tarot & Astrologia para RH")
