@@ -56,7 +56,7 @@ def calcular_nota_astrologica_casa(casa_num, signo_nome):
     prefs = PREFERENCIA_ELEMENTO_CASA.get(casa_num, ["Terra"])
     if elemento_signo in prefs:
         return 5
-    elif elemento_signo in ["Fogo", "Air"] and any(p in ["Fogo", "Ar"] for p in prefs):
+    elif elemento_signo in ["Fogo", "Ar"] and any(p in ["Fogo", "Ar"] for p in prefs):
         return 4
     elif elemento_signo in ["Terra", "Água"] and any(p in ["Terra", "Água"] for p in prefs):
         return 4
@@ -339,7 +339,6 @@ with tab1:
                 st.text_input("Carta Positiva (Pontos Fortes)", key=f"t_positiva_{num}", placeholder="Ex: 4 de Copas")
                 st.number_input("Nota (1-5)", min_value=1, max_value=5, value=3, key=f"t_pontos_{num}")
 
-    # Exibição do Resultado Individual da Fase 1
     pontuacoes_t1 = [st.session_state.get(f"t_pontos_{i}", 3) for i in range(1, 9)]
     total_t1 = sum(pontuacoes_t1)
     perc_t1 = (total_t1 / 40.0) * 100
@@ -504,38 +503,16 @@ with tab2:
             st.markdown("### Trindade Principal (Signo Solar, Ascendente e Lunar)")
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
-                st.markdown(
-                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Solar</span>
-<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Solar']['signo']}</div>
-<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Solar']['grau']}</div>
-</div>""",
-                    unsafe_allow_html=True,
-                )
+                st.metric(label="Signo Solar", value=b3['Solar']['signo'], delta=b3['Solar']['grau'])
             with col_b2:
-                st.markdown(
-                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Ascendente</span>
-<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Ascendente']['signo']}</div>
-<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Ascendente']['grau']}</div>
-</div>""",
-                    unsafe_allow_html=True,
-                )
+                st.metric(label="Signo Ascendente", value=b3['Ascendente']['signo'], delta=b3['Ascendente']['grau'])
             with col_b3:
-                st.markdown(
-                    f"""<div style="background-color: #161a1d; padding: 14px 18px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Signo Lunar</span>
-<div style="font-size: 18px; color: #ffffff; font-weight: 700; margin-top: 6px;">{b3['Lunar']['signo']}</div>
-<div style="font-size: 12px; color: #718096; margin-top: 2px;">{b3['Lunar']['grau']}</div>
-</div>""",
-                    unsafe_allow_html=True,
-                )
+                st.metric(label="Signo Lunar", value=b3['Lunar']['signo'], delta=b3['Lunar']['grau'])
             st.markdown("")
 
         st.markdown("### Resultado da Mandala das 12 Casas (Kerykeion Real)")
         mandala_items = list(st.session_state["mandala_calculada"].items())
         
-        # Exibição do Resultado Individual da Fase 2
         total_t2 = sum([v.get("nota", 3) for k, v in mandala_items])
         perc_t2 = (total_t2 / 60.0) * 100
         st.info(f"🌟 **Resultado Individual da Fase 2 (Astrologia):** {total_t2} / 60 pontos ({perc_t2:.1f}% de potencial estrutural celeste)")
@@ -547,16 +524,10 @@ with tab2:
                 if idx_linha + col_idx < len(mandala_items):
                     k, v = mandala_items[idx_linha + col_idx]
                     with cols_grid[col_idx]:
-                        st.markdown(
-                            f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 12px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;">
-<div>
-<div style="font-size: 12px; color: #00cc96; font-weight: 700; text-transform: uppercase;">{k} (Nota: {v.get('nota', 3)}/5)</div>
-<div style="font-size: 17px; color: #ffffff; font-weight: 700; margin-top: 4px;">{v['signo']} <span style="font-size: 12px; color: #a0aec0; font-weight: normal;">({v['grau']})</span></div>
-</div>
-<div style="font-size: 11px; color: #cbd5e0; margin-top: 8px; border-top: 1px solid #2d3748; padding-top: 6px; line-height: 1.3;">{v['analise']}</div>
-</div>""",
-                            unsafe_allow_html=True,
-                        )
+                        with st.container(border=True):
+                            st.markdown(f"**{k}** *(Nota: {v.get('nota', 3)}/5)*")
+                            st.markdown(f"### {v['signo']} `({v['grau']})`")
+                            st.caption(v['analise'])
     else:
         st.info("Nenhuma mandala calculada na sessão atual. Preencha os dados e clique em 'Processar Mandala Astrológica Real'.")
 
@@ -580,7 +551,6 @@ with tab3:
             total_t2 = 36
             perc_t2 = 60.0
 
-        # Média Ponderada Integrada (Fase 3): 70% Tarot + 30% Astrologia
         indice_global = (perc_t1 * 0.7) + (perc_t2 * 0.3)
 
         p6 = st.session_state.get("t_pontos_6", 3)
@@ -599,7 +569,6 @@ with tab3:
         c_nome = st.session_state.get("input_nome_cand", "Candidato(a)")
         c_vaga = st.session_state.get("input_vaga_cand", "Cargo")
         c_nivel = st.session_state.get("input_nivel_cand", "Nível")
-        big_three_dados = st.session_state.get("big_three_calculado", {})
         data_atual = datetime.now().strftime("%d / %m / %Y")
 
         st.markdown("---")
@@ -616,29 +585,11 @@ with tab3:
 
         col_res1, col_res2, col_res3 = st.columns(3)
         with col_res1:
-            st.markdown(
-                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 1 (Tarot)</span>
-<div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_t1} / 40 <span style="font-size: 13px; color: #00cc96;">({perc_t1:.1f}%)</span></div>
-</div>""",
-                unsafe_allow_html=True,
-            )
+            st.metric(label="Fase 1 (Tarot)", value=f"{total_t1} / 40", delta=f"{perc_t1:.1f}%")
         with col_res2:
-            st.markdown(
-                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 2 (Astrologia)</span>
-<div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-top: 4px;">{total_t2} / 60 <span style="font-size: 13px; color: #00cc96;">({perc_t2:.1f}%)</span></div>
-</div>""",
-                unsafe_allow_html=True,
-            )
+            st.metric(label="Fase 2 (Astrologia)", value=f"{total_t2} / 60", delta=f"{perc_t2:.1f}%")
         with col_res3:
-            st.markdown(
-                f"""<div style="background-color: #161a1d; padding: 14px; border-radius: 8px; border: 1px solid #2d3748; text-align: center;">
-<span style="font-size: 11px; color: #a0aec0; font-weight: 700; text-transform: uppercase;">Fase 3 (Índice Global)</span>
-<div style="font-size: 20px; color: #00cc96; font-weight: 700; margin-top: 4px;">{indice_global:.1f}%</div>
-</div>""",
-                unsafe_allow_html=True,
-            )
+            st.metric(label="Fase 3 (Índice Global)", value=f"{indice_global:.1f}%")
 
         st.markdown("")
         st.markdown(f"**Classificação Final:** {classificacao}")
@@ -706,28 +657,24 @@ with tab3:
                 pdf.add_page()
                 pdf.set_auto_page_break(auto=True, margin=15)
                 
-                # Cabeçalho
                 pdf.set_font("helvetica", "B", 12)
                 pdf.cell(0, 8, "SISTEMA DE DIAGNOSTICO CORPORATIVO - LAUDO EXECUTIVO", 0, 1, "C")
                 pdf.set_font("helvetica", "", 8)
                 pdf.cell(0, 4, "Recrutamento e Selecao | Metodo Integrado de 3 Fases", 0, 1, "C")
                 pdf.ln(3)
 
-                # Dados do Candidato
                 pdf.set_font("helvetica", "B", 9)
                 pdf.cell(0, 5, f"Candidato(a): {c_nome}", 0, 1)
                 pdf.cell(0, 5, f"Cargo/Vaga: {c_vaga} ({c_nivel})", 0, 1)
                 pdf.cell(0, 5, f"Data da Avaliacao: {data_atual}", 0, 1)
                 pdf.ln(2)
 
-                # Resultados globais por fase
                 pdf.cell(0, 5, f"Fase 1 (Tarot): {total_t1} / 40 ({perc_t1:.1f}%)", 0, 1)
                 pdf.cell(0, 5, f"Fase 2 (Astrologia): {total_t2} / 60 ({perc_t2:.1f}%)", 0, 1)
                 pdf.cell(0, 5, f"Fase 3 (Indice Global Integrado): {indice_global:.1f}% | {classificacao}", 0, 1)
                 pdf.cell(0, 5, f"Sinal Vermelho Ativado: {sinal_vermelho}", 0, 1)
                 pdf.ln(3)
 
-                # Tabela de Tarot
                 pdf.set_font("helvetica", "B", 9)
                 pdf.cell(0, 5, "Tabela Oficial de Avaliação Profissional (Tarot)", 0, 1)
                 pdf.set_font("helvetica", "B", 8)
