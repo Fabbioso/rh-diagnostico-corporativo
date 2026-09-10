@@ -781,7 +781,7 @@ with tab3:
                 })
 
             df_ficha = pd.DataFrame(tabela_dados)
-            st.dataframe(df_ficha, use_container_width=True, hide_index=True)
+            st.table(df_ficha)
 
             st.markdown("### Cruzamento Analítico com Efemérides Astrológicas")
             mapeamento_cruzado = [
